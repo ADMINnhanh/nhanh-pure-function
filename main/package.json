@@ -1,0 +1,15 @@
+{
+  "name": "nhanh-pure-function",
+  "version": "1.3.5",
+  "description": "纯函数工具",
+  "main": "lib/Index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "pure-function",
+    "format"
+  ],
+  "author": "nhanh",
+  "license": "MIT"
+}

@@ -1,0 +1,19 @@
+name: Publish to npm
+
+on:
+  push:
+    branches:
+      - main # 触发分支，根据需要替换
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Publish to npm
+        run: npm publish --prefix ./main
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
