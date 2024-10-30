@@ -13,7 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Login to npm
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
       - name: Publish to npm
         run: npm publish ./main
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
