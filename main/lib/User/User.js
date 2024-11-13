@@ -482,3 +482,55 @@ export class _LocalDrag {
     }
   }
 }
+
+// 进入全屏模式
+export function _EnterFullscreen(content) {
+  if (!content) return console.error("No DOM: ", content);
+  if (content.requestFullscreen) {
+    content.requestFullscreen();
+  } else if (content.mozRequestFullScreen) {
+    // Firefox
+    content.mozRequestFullScreen();
+  } else if (content.webkitRequestFullscreen) {
+    // Chrome, Safari and Opera
+    content.webkitRequestFullscreen();
+  } else if (content.msRequestFullscreen) {
+    // IE/Edge
+    content.msRequestFullscreen();
+  }
+}
+// 退出全屏模式
+export function _ExitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.mozCancelFullScreen) {
+    // Firefox
+    document.mozCancelFullScreen();
+  } else if (document.webkitExitFullscreen) {
+    // Chrome, Safari and Opera
+    document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) {
+    // IE/Edge
+    document.msExitFullscreen();
+  }
+}
+// 判断是否处于全屏模式
+export function _IsFullscreen() {
+  return (
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement
+  );
+}
+/**
+ * 返回一个用于切换全屏模式的函数
+ * @param {HTMLElement} content - 需要进入全屏的元素
+ * 该函数通过检查不同浏览器的特定方法来实现全屏切换
+ */
+export function _Fullscreen(content) {
+  return function () {
+    if (_IsFullscreen()) _ExitFullscreen();
+    else _EnterFullscreen(content);
+  };
+}

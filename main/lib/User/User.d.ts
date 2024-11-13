@@ -182,3 +182,17 @@ export class _LocalDrag {
   /** 结束拖拽 */
   finish(): void;
 }
+
+// 进入全屏模式
+export function _EnterFullscreen(content: HTMLElement): void;
+// 退出全屏模式
+export function _ExitFullscreen(): void;
+// 判断是否处于全屏模式
+export function _IsFullscreen(): boolean;
+
+/**
+ * 返回一个用于切换全屏模式的函数
+ * @param {HTMLElement} content - 需要进入全屏的元素
+ * 该函数通过检查不同浏览器的特定方法来实现全屏切换
+ */
+export function _Fullscreen(content: HTMLElement): () => void;

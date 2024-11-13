@@ -286,15 +286,21 @@ export function _GetQueryParams(url) {
 }
 
 /**
- * 生成uuid
- * @returns {string}
+ * 生成一个UUID（通用唯一标识符）字符串
+ * 可以选择性地在UUID前面添加前缀
+ *
+ * @param {string} prefix - 可选参数，要添加到UUID前面的前缀
+ * @returns {string} 一个带有可选前缀的UUID字符串
  */
-export function _GenerateUUID() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0; // 随机生成一个0到15的数
-    const v = c === "x" ? r : (r & 0x3) | 0x8; // 对于'y'位, v = (r & 0x3 | 0x8) 确保变体正确
-    return v.toString(16); // 将数字转换为16进制
-  });
+export function _GenerateUUID(prefix = "") {
+  return (
+    prefix +
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0; // 随机生成一个0到15的数
+      const v = c === "x" ? r : (r & 0x3) | 0x8; // 对于'y'位, v = (r & 0x3 | 0x8) 确保变体正确
+      return v.toString(16); // 将数字转换为16进制
+    })
+  );
 }
 
 /**
