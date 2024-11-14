@@ -188,7 +188,7 @@ export function _EnterFullscreen(content: HTMLElement): void;
 // 退出全屏模式
 export function _ExitFullscreen(): void;
 // 判断是否处于全屏模式
-export function _IsFullscreen(): boolean;
+export function _IsFullscreen(): HTMLElement | undefined;
 
 /**
  * 返回一个用于切换全屏模式的函数
