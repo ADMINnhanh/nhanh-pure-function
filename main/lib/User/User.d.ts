@@ -183,11 +183,11 @@ export class _LocalDrag {
   finish(): void;
 }
 
-// 进入全屏模式
+/** 进入全屏模式 */
 export function _EnterFullscreen(content: HTMLElement): void;
-// 退出全屏模式
+/** 退出全屏模式 */
 export function _ExitFullscreen(): void;
-// 判断是否处于全屏模式
+/** 判断是否处于全屏模式 */
 export function _IsFullscreen(): HTMLElement | undefined;
 
 /**

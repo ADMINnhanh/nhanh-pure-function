@@ -118,9 +118,11 @@ export function _FormatNumberWithUnit(number, config = {}) {
     "载",
     "极",
   ];
-  const digits = Math.floor(Math.log10(number) / 4); // 计算位数
 
-  // 不超过万位的数字直接返回
+  /** 计算位数 */
+  const digits = Math.floor(Math.log10(number) / 4);
+
+  /** 不超过万位的数字直接返回 */
   if (digits === 0) {
     if (integer) {
       return _join(number, suffix, plus);

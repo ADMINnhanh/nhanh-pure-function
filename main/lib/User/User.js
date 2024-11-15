@@ -483,7 +483,7 @@ export class _LocalDrag {
   }
 }
 
-// 进入全屏模式
+/** 进入全屏模式 */
 export function _EnterFullscreen(content) {
   if (!content) return console.error("No DOM: ", content);
   if (content.requestFullscreen) {
@@ -499,7 +499,7 @@ export function _EnterFullscreen(content) {
     content.msRequestFullscreen();
   }
 }
-// 退出全屏模式
+/** 退出全屏模式 */
 export function _ExitFullscreen() {
   if (document.exitFullscreen) {
     document.exitFullscreen();
@@ -514,7 +514,7 @@ export function _ExitFullscreen() {
     document.msExitFullscreen();
   }
 }
-// 判断是否处于全屏模式
+/** 判断是否处于全屏模式 */
 export function _IsFullscreen() {
   return (
     document.fullscreenElement ||
