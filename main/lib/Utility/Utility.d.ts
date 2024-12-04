@@ -79,6 +79,16 @@ export function _TimeTransition(
 export function _ReadFile(src: string): Promise<string>;
 
 /**
+ * 从给定的URL中提取文件名
+ * 如果无法提取文件名，则返回默认的文件名
+ *
+ * @param {string} href - 包含文件路径的URL
+ * @param {string} [defaultName="file"] - 默认的文件名，当无法提取时使用
+ * @returns {string} 提取到的文件名或默认的文件名
+ */
+export function _GetHrefName(href: string, defaultName = "file"): string;
+
+/**
  * 下载文件
  * @param {string} href 文件路径
  * @param {string} fileName 导出文件名

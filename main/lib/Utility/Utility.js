@@ -176,18 +176,32 @@ export function _ReadFile(src) {
 }
 
 /**
+ * 从给定的URL中提取文件名
+ * 如果无法提取文件名，则返回默认的文件名
+ *
+ * @param {string} href - 包含文件路径的URL
+ * @param {string} [defaultName="file"] - 默认的文件名，当无法提取时使用
+ * @returns {string} 提取到的文件名或默认的文件名
+ */
+export function _GetHrefName(href, defaultName = "file") {
+  // 分割URL并获取最后一个路径段，然后去除查询字符串，最后返回文件名或默认名
+  return href.split("/").pop().split("?")[0] || defaultName;
+}
+
+/**
  * 下载文件
- * @param {文件路径} href
- * @param {导出文件名} download
+ * @param {string} href - 文件路径
+ * @param {string} [fileName] - 导出文件名
  */
 export function _DownloadFile(href, fileName) {
   const a = document.createElement("a");
   a.href = href;
-  if (fileName) a.download = fileName;
-  a.style.display = "none";
+  a.download = fileName || _GetHrefName(href, "image");
+
+  // 临时将 a 标签添加到 DOM，然后触发点击事件，最后移除
   document.body.appendChild(a);
   a.click();
-  a.remove();
+  document.body.removeChild(a);
 }
 
 /**
