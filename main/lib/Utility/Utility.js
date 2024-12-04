@@ -193,15 +193,28 @@ export function _GetHrefName(href, defaultName = "file") {
  * @param {string} href - 文件路径
  * @param {string} [fileName] - 导出文件名
  */
-export function _DownloadFile(href, fileName) {
-  const a = document.createElement("a");
-  a.href = href;
-  a.download = fileName || _GetHrefName(href, "image");
+export async function _DownloadFile(href, fileName) {
+  try {
+    const response = await fetch(href); // 获取文件
+    if (!response.ok) throw new Error("文件下载失败");
 
-  // 临时将 a 标签添加到 DOM，然后触发点击事件，最后移除
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+    const blob = await response.blob(); // 将响应转换为 Blob 对象
+    const url = URL.createObjectURL(blob); // 创建文件 URL
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName || _GetHrefName(href, "image");
+
+    // 临时将 a 标签添加到 DOM，然后触发点击事件，最后移除
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // 释放 URL 对象
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("下载文件时发生错误:", error);
+  }
 }
 
 /**
