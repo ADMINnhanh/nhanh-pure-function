@@ -238,3 +238,14 @@ export function _GetTargetByPath(model: any, path: string): any;
  * @returns {*} - 返回更新后的模型对象中的值
  */
 export function _UpdateTargetByPath(model: any, path: string, value: any): any;
+
+/**
+ * 使用 XMLHttpRequest 检查指定 URL 的连接状态
+ *
+ * 此函数通过发送一个 HEAD 请求来检查给定 URL 是否可访问 HEAD 请求仅请求文档头部信息，
+ * 而不是整个页面，因此比 GET 或 POST 请求更快此方法常用于检查 URL 是否有效，以及服务器的响应时间等
+ *
+ * @param {string} url - 需要检查连接的 URL 地址
+ * @returns {Promise} - 返回一个 Promise 对象，该对象在连接成功时解析，在连接失败时拒绝
+ */
+export function _CheckConnectionWithXHR(url: string): Promise<any>;
