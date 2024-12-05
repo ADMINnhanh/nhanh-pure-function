@@ -535,3 +535,34 @@ export function _CheckConnectionWithXHR(url) {
     xhr.send();
   });
 }
+
+/**
+ * 判断给定URL是否指向一个安全上下文
+ *
+ * 安全上下文是指通过一系列安全协议访问的资源，这些协议提供了数据的加密传输和身份验证
+ * 本函数通过检查URL的协议前缀来判断是否属于安全上下文
+ *
+ * @param {string} url - 待检查的URL字符串
+ * @returns {boolean} - 如果URL指向安全上下文，则返回true；否则返回false
+ */
+export function _IsSecureContext(url) {
+  // 定义一个包含安全协议前缀的数组
+  // 这里列出的协议代表了数据在传输过程中是加密的，从而保护了数据的机密性和完整性
+  const secureProtocols = [
+    "https:", // HTTPS协议，用于安全地浏览网页
+    "wss:", // WebSocket Secure协议，用于安全的WebSocket通信
+    "ftps:", // FTP Secure协议，用于安全的文件传输
+    "sftp:", // SSH File Transfer Protocol，通过SSH安全地传输文件
+    "smpts:", // Secure SMTP协议，用于安全地发送邮件
+    "smtp+tls:", // SMTP协议结合STARTTLS扩展，用于升级到安全连接
+    "imap+tls:", // IMAP协议结合STARTTLS扩展，用于安全地访问邮件
+    "pop3+tls:", // POP3协议结合STARTTLS扩展，用于安全地接收邮件
+    "rdp:", // Remote Desktop Protocol，用于安全的远程桌面连接
+    "vpn:", // VPN协议，用于创建安全的网络连接
+  ];
+
+  // 遍历安全协议数组，检查给定URL是否以任一安全协议前缀开始
+  // 使用startsWith方法来判断URL是否使用了安全协议
+  // 如果找到匹配的安全协议前缀，则返回true，表示URL指向安全上下文；否则返回false
+  return secureProtocols.some((protocol) => url.startsWith(protocol));
+}

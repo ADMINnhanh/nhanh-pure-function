@@ -249,3 +249,14 @@ export function _UpdateTargetByPath(model: any, path: string, value: any): any;
  * @returns {Promise} - 返回一个 Promise 对象，该对象在连接成功时解析，在连接失败时拒绝
  */
 export function _CheckConnectionWithXHR(url: string): Promise<any>;
+
+/**
+ * 判断给定URL是否指向一个安全上下文
+ *
+ * 安全上下文是指通过一系列安全协议访问的资源，这些协议提供了数据的加密传输和身份验证
+ * 本函数通过检查URL的协议前缀来判断是否属于安全上下文
+ *
+ * @param {string} url - 待检查的URL字符串
+ * @returns {boolean} - 如果URL指向安全上下文，则返回true；否则返回false
+ */
+export function _IsSecureContext(url: string): boolean;
