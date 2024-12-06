@@ -1,5 +1,3 @@
-import { ExtractParameters } from "../Index";
-
 /**
  * 非null | undefined判断
  * @param value any
@@ -62,7 +60,7 @@ export function _MergeObjects<T, T1>(A: T, B: T1): T & T1;
 /**
  * 时间戳转换字符串
  * @param {Number | Date} time 时间戳或Date对象
- * @param {String} template 完整模板 -->  yyyy MM DD hh mm ss ms
+ * @param {String} template 完整模板 -->  YYYY MM DD hh mm ss ms
  * @param {Boolean} pad 补0
  */
 export function _TimeTransition(
@@ -160,7 +158,7 @@ export function _GenerateUUID(prefix?: string): string;
 export function _Debounce<T extends Function>(
   fn: T,
   delay: number
-): (...args: ExtractParameters<T>) => void;
+): (...args: Parameters<T>) => void;
 
 /**
  * 节流
@@ -171,7 +169,7 @@ export function _Debounce<T extends Function>(
 export function _Throttle<T extends Function>(
   fn: T,
   delay: number
-): (...args: ExtractParameters<T>) => void;
+): (...args: Parameters<T>) => void;
 
 /**
  * 数据类型

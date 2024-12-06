@@ -120,7 +120,7 @@ export function _MergeObjects(A, B, visitedObjects = []) {
 /**
  * 时间戳转换字符串
  * @param {Number | Date} time 时间戳或Date对象
- * @param {String} template 完整模板 -->  yyyy MM DD hh mm ss ms
+ * @param {String} template 完整模板 -->  YYYY MM DD hh mm ss ms
  * @param {Boolean} pad 补0
  */
 export function _TimeTransition(time, template, pad = true) {
@@ -131,7 +131,7 @@ export function _TimeTransition(time, template, pad = true) {
     return "";
   }
   const dictionary = {
-    yyyy: "getFullYear",
+    YYYY: "getFullYear",
     MM: "getMonth",
     DD: "getDate",
     hh: "getHours",
