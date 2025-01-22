@@ -65,7 +65,7 @@ export function _MergeObjects<T, T1>(A: T, B: T1): T & T1;
  */
 export function _TimeTransition(
   time: number | Date,
-  template: string,
+  template?: string,
   pad?: boolean
 ): string;
 
@@ -91,7 +91,7 @@ export function _GetHrefName(href: string, defaultName = "file"): string;
  * @param {string} href 文件路径
  * @param {string} fileName 导出文件名
  */
-export function _DownloadFile(href: string, fileName?: string): void;
+export function _DownloadFile(href: string, fileName?: string): Promise<void>;
 
 /**
  * 获取帧率

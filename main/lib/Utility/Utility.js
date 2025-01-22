@@ -86,34 +86,47 @@ export function _CapitalizeFirstLetter(string) {
  * @param {Object | Array} B
  * @returns A&B || B
  */
-export function _MergeObjects(A, B, visitedObjects = []) {
+export function _MergeObjects(
+  A,
+  B,
+  visitedObjects = [],
+  outTime = +new Date()
+) {
+  /** 疑似死循环 */
+  if (outTime < +new Date() - 2000) {
+    console.error("_MergeObjects 合并异常：疑似死循环");
+    return null;
+  }
+
   const getType = (v) => (Array.isArray(v) ? "array" : typeof v);
   const TA = getType(A);
   const TB = getType(B);
 
   if (TA != TB) return B;
-  if (visitedObjects.some((item) => item == B)) return B;
 
-  if (TA == "object") {
-    visitedObjects.push(A, B);
-    for (const key in B) {
-      if (Object.prototype.hasOwnProperty.call(B, key)) {
-        const BC = B[key];
-        const AC = A[key];
-        const fianlValue = _MergeObjects(AC, BC, visitedObjects);
-        A[key] = fianlValue;
+  if (TA == "object" || TA == "array") {
+    if (visitedObjects.some(([a, b]) => a == A && b == B)) return A;
+    visitedObjects.push([A, B]);
+
+    if (TA == "object") {
+      for (const key in B) {
+        if (Object.prototype.hasOwnProperty.call(B, key)) {
+          const BC = B[key];
+          const AC = A[key];
+          const fianlValue = _MergeObjects(AC, BC, visitedObjects, outTime);
+          A[key] = fianlValue;
+        }
       }
+      return A;
+    } else if (TA == "array") {
+      B.forEach((item, index) => {
+        const BC = item;
+        const AC = A[index];
+        const fianlValue = _MergeObjects(AC, BC, visitedObjects, outTime);
+        A[index] = fianlValue;
+      });
+      return A;
     }
-    return A;
-  } else if (TA == "array") {
-    visitedObjects.push(A, B);
-    B.forEach((item, index) => {
-      const BC = item;
-      const AC = A[index];
-      const fianlValue = _MergeObjects(AC, BC, visitedObjects);
-      A[index] = fianlValue;
-    });
-    return A;
   } else return B;
 }
 
@@ -123,7 +136,11 @@ export function _MergeObjects(A, B, visitedObjects = []) {
  * @param {String} template 完整模板 -->  YYYY MM DD hh mm ss ms
  * @param {Boolean} pad 补0
  */
-export function _TimeTransition(time, template, pad = true) {
+export function _TimeTransition(
+  time,
+  template = "YYYY-MM-DD hh:mm:ss",
+  pad = true
+) {
   try {
     time = new Date(time);
   } catch (error) {

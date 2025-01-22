@@ -485,33 +485,34 @@ export class _LocalDrag {
 
 /** 进入全屏模式 */
 export function _EnterFullscreen(content) {
-  if (!content) return console.error("No DOM: ", content);
-  if (content.requestFullscreen) {
-    content.requestFullscreen();
+  if (!content) {
+    return Promise.reject("No DOM: ", content);
+  } else if (content.requestFullscreen) {
+    return content.requestFullscreen();
   } else if (content.mozRequestFullScreen) {
     // Firefox
-    content.mozRequestFullScreen();
+    return content.mozRequestFullScreen();
   } else if (content.webkitRequestFullscreen) {
     // Chrome, Safari and Opera
-    content.webkitRequestFullscreen();
+    return content.webkitRequestFullscreen();
   } else if (content.msRequestFullscreen) {
     // IE/Edge
-    content.msRequestFullscreen();
+    return content.msRequestFullscreen();
   }
 }
 /** 退出全屏模式 */
 export function _ExitFullscreen() {
   if (document.exitFullscreen) {
-    document.exitFullscreen();
+    return document.exitFullscreen();
   } else if (document.mozCancelFullScreen) {
     // Firefox
-    document.mozCancelFullScreen();
+    return document.mozCancelFullScreen();
   } else if (document.webkitExitFullscreen) {
     // Chrome, Safari and Opera
-    document.webkitExitFullscreen();
+    return document.webkitExitFullscreen();
   } else if (document.msExitFullscreen) {
     // IE/Edge
-    document.msExitFullscreen();
+    return document.msExitFullscreen();
   }
 }
 /** 判断是否处于全屏模式 */

@@ -184,9 +184,9 @@ export class _LocalDrag {
 }
 
 /** 进入全屏模式 */
-export function _EnterFullscreen(content: HTMLElement): void;
+export function _EnterFullscreen(content: HTMLElement): Promise<void>;
 /** 退出全屏模式 */
-export function _ExitFullscreen(): void;
+export function _ExitFullscreen(): Promise<void>;
 /** 判断是否处于全屏模式 */
 export function _IsFullscreen(): HTMLElement | undefined;
 
