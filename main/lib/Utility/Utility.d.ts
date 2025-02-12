@@ -84,7 +84,7 @@ export function _ReadFile(src: string): Promise<string>;
  * @param {string} [defaultName="file"] - 默认的文件名，当无法提取时使用
  * @returns {string} 提取到的文件名或默认的文件名
  */
-export function _GetHrefName(href: string, defaultName = "file"): string;
+export function _GetHrefName(href: string, defaultName?: string): string;
 
 /**
  * 下载文件
@@ -155,7 +155,7 @@ export function _GenerateUUID(prefix?: string): string;
  * @param {number} delay
  * @returns {Function}
  */
-export function _Debounce<T extends Function>(
+export function _Debounce<T extends (...args: any) => any>(
   fn: T,
   delay: number
 ): (...args: Parameters<T>) => void;
@@ -166,7 +166,7 @@ export function _Debounce<T extends Function>(
  * @param {number} delay
  * @returns {Function}
  */
-export function _Throttle<T extends Function>(
+export function _Throttle<T extends (...args: any) => any>(
   fn: T,
   delay: number
 ): (...args: Parameters<T>) => void;
@@ -286,7 +286,7 @@ export class _FileTypeChecker {
    */
   static check(
     url: string,
-    type: keyof typeof FileTypeChecker.fileExtensions
+    type: keyof typeof _FileTypeChecker.fileExtensions
   ): boolean;
 
   /**
