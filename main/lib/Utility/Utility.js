@@ -93,7 +93,7 @@ export function _MergeObjects(
   outTime = +new Date()
 ) {
   /** 疑似死循环 */
-  if (outTime < +new Date() - 2000) {
+  if (outTime < +new Date() - 300) {
     console.error("_MergeObjects 合并异常：疑似死循环");
     return null;
   }
@@ -582,4 +582,149 @@ export function _IsSecureContext(url) {
   // 使用startsWith方法来判断URL是否使用了安全协议
   // 如果找到匹配的安全协议前缀，则返回true，表示URL指向安全上下文；否则返回false
   return secureProtocols.some((protocol) => url.startsWith(protocol));
+}
+
+/**
+ * 文件类型检查器类
+ * 用于检查和验证文件的类型
+ */
+export class _FileTypeChecker {
+  static fileExtensions = {
+    // 图片文件
+    image: [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".bmp",
+      ".webp",
+      ".tiff",
+      ".svg",
+      ".heif",
+      ".heic",
+      ".ico",
+      ".raw",
+      ".jfif",
+    ],
+    // 演示文稿文件（PPT）
+    ppt: [".ppt", ".pptx"],
+    // Word 文件
+    word: [".doc", ".docx"],
+    // Excel 文件
+    excel: [".xls", ".xlsx"],
+    // PDF 文件
+    pdf: [".pdf"],
+    // 文本文件
+    text: [".txt", ".csv"],
+    // 音频文件
+    audio: [
+      ".mp3",
+      ".wav",
+      ".ogg",
+      ".flac",
+      ".aac",
+      ".wma",
+      ".m4a",
+      ".alac",
+      ".ape",
+      ".opus",
+      ".amr",
+      ".ra",
+    ],
+    // 视频文件
+    video: [
+      ".mp4",
+      ".avi",
+      ".mkv",
+      ".mov",
+      ".wmv",
+      ".flv",
+      ".webm",
+      ".mpg",
+      ".mpeg",
+      ".3gp",
+      ".vob",
+      ".ogv",
+      ".m4v",
+      ".ts",
+      ".rm",
+      ".rmvb",
+    ],
+    // 压缩包文件
+    archive: [
+      ".zip",
+      ".rar",
+      ".tar",
+      ".gz",
+      ".bz2",
+      ".xz",
+      ".7z",
+      ".tar.gz",
+      ".tar.bz2",
+      ".tar.xz",
+    ],
+  };
+
+  // 判断文件类型
+  static check(url, type) {
+    const extensions = FileTypeChecker.fileExtensions[type];
+    return FileTypeChecker._checkExtension(url, extensions);
+  }
+
+  // 通用的检查扩展名的函数
+  static _checkExtension(url, validExtensions) {
+    const lowerCaseUrl = url.toLowerCase();
+    return validExtensions.some((extension) =>
+      lowerCaseUrl.endsWith(extension)
+    );
+  }
+}
+
+/**
+ * 旋转列表函数
+ *
+ * 该函数接受一个列表作为参数，并返回一个二维数组，其中每个内部数组都是原列表的一种旋转形式
+ * 旋转列表的原理是将原列表分割成两部分，并将这两部分重新组合，形成一个新的列表
+ *
+ * @param list T[] - 需要旋转的列表，列表元素类型为泛型T
+ * @returns T[][] - 返回一个二维数组，每个内部数组代表原列表的一种旋转形式
+ */
+export function _RotateList(list) {
+  // 使用map函数遍历列表，对于列表中的每个元素（这里不需要元素本身，所以用_表示）
+  // i表示当前元素的索引，利用这个索引对列表进行分割和重组
+  return list.map((_, i) => {
+    // 将当前索引i之后的元素与从列表开头到索引i之前的元素拼接成一个新的列表
+    // 这样做可以实现列表的旋转效果
+    return list.slice(i).concat(list.slice(0, i));
+  });
+}
+
+/**
+ * 克隆给定值的函数
+ * 该函数尝试使用window.structuredClone方法进行深克隆，如果失败则使用自定义方法
+ * @param {any} val - 需要克隆的值
+ * @returns {any} - 克隆后的值
+ */
+export function _Clone(val) {
+  // 保存原始的structuredClone方法引用
+  const oldClone = window.structuredClone;
+
+  // 定义一个新的克隆方法，用于处理非对象或null值，以及对象的合并
+  const newClone = (val) => {
+    // 如果val为null或不是对象，则直接返回val
+    if (val === null || typeof val !== "object") return val;
+    // 使用_MergeObjects函数合并对象，如果是数组则传递空数组作为第一个参数，否则传递空对象
+    return _MergeObjects(Array.isArray(val) ? [] : {}, val);
+  };
+
+  // 尝试使用原始的structuredClone方法或自定义的newClone方法进行克隆
+  try {
+    // 如果oldClone存在，则使用oldClone方法进行克隆，否则使用newClone方法
+    return oldClone ? oldClone(val) : newClone(val);
+  } catch (error) {
+    // 使用日志系统或其他方式记录错误信息
+    console.error("structuredClone error:", error);
+    // 如果oldClone存在且之前的尝试失败，则再次使用newClone方法尝试克隆
+    return oldClone && newClone(val);
+  }
 }

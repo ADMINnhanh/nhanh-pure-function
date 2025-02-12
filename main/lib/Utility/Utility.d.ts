@@ -258,3 +258,65 @@ export function _CheckConnectionWithXHR(url: string): Promise<any>;
  * @returns {boolean} - 如果URL指向安全上下文，则返回true；否则返回false
  */
 export function _IsSecureContext(url: string): boolean;
+
+/**
+ * 文件类型检查器类
+ * 用于检查和验证文件的类型
+ */
+export class _FileTypeChecker {
+  // 定义每种文件类型的扩展名数组
+  private static fileExtensions: {
+    image: string[];
+    ppt: string[];
+    word: string[];
+    excel: string[];
+    pdf: string[];
+    text: string[];
+    audio: string[];
+    video: string[];
+    archive: string[];
+  };
+
+  /**
+   * 检查文件是否符合某种类型
+   *
+   * @param url 文件的URL或路径，用于检查文件类型
+   * @param type 文件类型，必须是fileExtensions属性中定义的键之一
+   * @returns 如果文件符合指定类型，则返回true；否则返回false
+   */
+  static check(
+    url: string,
+    type: keyof typeof FileTypeChecker.fileExtensions
+  ): boolean;
+
+  /**
+   * 内部方法：检查文件扩展名
+   *
+   * @param url 文件的URL或路径，用于提取文件扩展名
+   * @param validExtensions 有效的文件扩展名数组，用于比较
+   * @returns 如果文件扩展名在有效扩展名列表中，则返回true；否则返回false
+   */
+  private static _checkExtension(
+    url: string,
+    validExtensions: string[]
+  ): boolean;
+}
+
+/**
+ * 旋转列表函数
+ *
+ * 该函数接受一个列表作为参数，并返回一个二维数组，其中每个内部数组都是原列表的一种旋转形式
+ * 旋转列表的原理是将原列表分割成两部分，并将这两部分重新组合，形成一个新的列表
+ *
+ * @param list T[] - 需要旋转的列表，列表元素类型为泛型T
+ * @returns T[][] - 返回一个二维数组，每个内部数组代表原列表的一种旋转形式
+ */
+export function _RotateList<T>(list: T[]): T[][];
+
+/**
+ * 克隆给定值的函数
+ * 该函数尝试使用window.structuredClone方法进行深克隆，如果失败则使用自定义方法
+ * @param {any} val - 需要克隆的值
+ * @returns {any} - 克隆后的值
+ */
+export function _Clone<T>(val: T): T;
