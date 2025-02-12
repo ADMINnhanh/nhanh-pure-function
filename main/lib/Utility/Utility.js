@@ -667,8 +667,8 @@ export class _FileTypeChecker {
 
   // 判断文件类型
   static check(url, type) {
-    const extensions = FileTypeChecker.fileExtensions[type];
-    return FileTypeChecker._checkExtension(url, extensions);
+    const extensions = _FileTypeChecker.fileExtensions[type];
+    return _FileTypeChecker._checkExtension(url, extensions);
   }
 
   // 通用的检查扩展名的函数
