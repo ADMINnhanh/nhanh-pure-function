@@ -193,16 +193,32 @@ export function _ReadFile(src) {
 }
 
 /**
- * 从给定的URL中提取文件名
- * 如果无法提取文件名，则返回默认的文件名
+ * 从给定的href中提取名称部分
+ * 该函数旨在处理URL字符串，并返回URL路径的最后一部分，去除查询参数
  *
- * @param {string} href - 包含文件路径的URL
+ * @param {string} href - 待处理的URL字符串
  * @param {string} [defaultName="file"] - 默认的文件名，当无法提取时使用
- * @returns {string} 提取到的文件名或默认的文件名
+ * @returns {string} URL路径的最后一部分，不包括查询参数
  */
 export function _GetHrefName(href, defaultName = "file") {
-  // 分割URL并获取最后一个路径段，然后去除查询字符串，最后返回文件名或默认名
-  return href.split("/").pop().split("?")[0] || defaultName;
+  // 简单检查空值和其他假值
+  if (!href) return defaultName;
+
+  // 将 href 转换为字符串以防止其他类型输入
+  href = String(href).trim();
+
+  // 如果 href 是空字符串，直接返回空字符串
+  if (href === "") return defaultName;
+
+  // 分割路径部分并获取最后一部分
+  const pathParts = href.split("/");
+  const lastPart = pathParts[pathParts.length - 1];
+
+  // 分割查询参数并获取基础名称
+  const name = lastPart.split("?")[0];
+
+  // 返回处理后的名称部分
+  return name;
 }
 
 /**
@@ -586,11 +602,11 @@ export function _IsSecureContext(url) {
 
 /**
  * 文件类型检查器类
- * 用于检查和验证文件的类型
+ * 用于检查文件URL的类型
  */
 export class _FileTypeChecker {
+  // 定义各种文件类型的文件扩展名
   static fileExtensions = {
-    // 图片文件
     image: [
       ".jpg",
       ".jpeg",
@@ -606,17 +622,11 @@ export class _FileTypeChecker {
       ".raw",
       ".jfif",
     ],
-    // 演示文稿文件（PPT）
     ppt: [".ppt", ".pptx"],
-    // Word 文件
     word: [".doc", ".docx"],
-    // Excel 文件
     excel: [".xls", ".xlsx"],
-    // PDF 文件
     pdf: [".pdf"],
-    // 文本文件
     text: [".txt", ".csv"],
-    // 音频文件
     audio: [
       ".mp3",
       ".wav",
@@ -631,7 +641,6 @@ export class _FileTypeChecker {
       ".amr",
       ".ra",
     ],
-    // 视频文件
     video: [
       ".mp4",
       ".avi",
@@ -650,7 +659,6 @@ export class _FileTypeChecker {
       ".rm",
       ".rmvb",
     ],
-    // 压缩包文件
     archive: [
       ".zip",
       ".rar",
@@ -663,20 +671,65 @@ export class _FileTypeChecker {
       ".tar.bz2",
       ".tar.xz",
     ],
+    code: [".js", ".ts", ".py", ".java", ".cpp", ".c"],
+    font: [".woff", ".woff2", ".ttf", ".otf"],
   };
 
-  // 判断文件类型
+  // 缓存文件扩展名的条目，以提高性能
+  static cachedEntries = Object.entries(_FileTypeChecker.fileExtensions);
+
+  /**
+   * 检查给定URL的文件类型
+   * @param {string} url - 文件的URL
+   * @param {string} [type] - 可选参数，指定要检查的文件类型
+   * @returns {string} - 如果URL与指定类型或任何已知类型匹配，则返回文件类型，否则返回"unknown"
+   * @throws {Error} - 如果URL无效或指定的文件类型未知，则抛出错误
+   */
   static check(url, type) {
-    const extensions = _FileTypeChecker.fileExtensions[type];
-    return _FileTypeChecker._checkExtension(url, extensions);
+    // 确保提供的URL是字符串且非空
+    if (!url || typeof url !== "string") {
+      throw new Error("Invalid URL provided");
+    }
+
+    // 将URL转换为小写，以确保文件扩展名匹配不区分大小写
+    const lowerCaseUrl = url.toLowerCase();
+
+    // 如果指定了文件类型，则检查URL是否具有该类型的任何文件扩展名
+    if (type) {
+      // 确保指定的文件类型是已知的
+      if (!_FileTypeChecker.fileExtensions.hasOwnProperty(type)) {
+        throw new Error(`Unknown file type: ${type}`);
+      }
+      const extensions = _FileTypeChecker.fileExtensions[type];
+      return _FileTypeChecker._checkExtension(lowerCaseUrl, extensions);
+    }
+
+    // 如果未指定文件类型，则检测URL属于哪种文件类型
+    return _FileTypeChecker._detectFileType(lowerCaseUrl);
   }
 
-  // 通用的检查扩展名的函数
+  /**
+   * 检查URL是否具有任何指定的文件扩展名
+   * @param {string} url - 文件的URL
+   * @param {string[]} validExtensions - 有效文件扩展名的数组
+   * @returns {boolean} - 如果URL具有任何指定的文件扩展名，则返回true，否则返回false
+   */
   static _checkExtension(url, validExtensions) {
-    const lowerCaseUrl = url.toLowerCase();
-    return validExtensions.some((extension) =>
-      lowerCaseUrl.endsWith(extension)
-    );
+    return validExtensions.some((extension) => url.endsWith(extension));
+  }
+
+  /**
+   * 检测文件URL的类型
+   * @param {string} url - 文件的URL
+   * @returns {string} - 如果URL与任何已知类型匹配，则返回文件类型，否则返回"unknown"
+   */
+  static _detectFileType(url) {
+    for (const [type, extensions] of _FileTypeChecker.cachedEntries) {
+      if (extensions.some((extension) => url.endsWith(extension))) {
+        return type;
+      }
+    }
+    return "unknown";
   }
 }
 

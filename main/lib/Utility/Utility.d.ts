@@ -77,12 +77,12 @@ export function _TimeTransition(
 export function _ReadFile(src: string): Promise<string>;
 
 /**
- * 从给定的URL中提取文件名
- * 如果无法提取文件名，则返回默认的文件名
+ * 从给定的href中提取名称部分
+ * 该函数旨在处理URL字符串，并返回URL路径的最后一部分，去除查询参数
  *
- * @param {string} href - 包含文件路径的URL
+ * @param {string} href - 待处理的URL字符串
  * @param {string} [defaultName="file"] - 默认的文件名，当无法提取时使用
- * @returns {string} 提取到的文件名或默认的文件名
+ * @returns {string} URL路径的最后一部分，不包括查询参数
  */
 export function _GetHrefName(href: string, defaultName?: string): string;
 
@@ -259,47 +259,63 @@ export function _CheckConnectionWithXHR(url: string): Promise<any>;
  */
 export function _IsSecureContext(url: string): boolean;
 
+type FileExtensions = {
+  image: string[];
+  ppt: string[];
+  word: string[];
+  excel: string[];
+  pdf: string[];
+  text: string[];
+  audio: string[];
+  video: string[];
+  archive: string[];
+  code: string[];
+  font: string[];
+};
 /**
  * 文件类型检查器类
  * 用于检查和验证文件的类型
  */
 export class _FileTypeChecker {
-  // 定义每种文件类型的扩展名数组
-  private static fileExtensions: {
-    image: string[];
-    ppt: string[];
-    word: string[];
-    excel: string[];
-    pdf: string[];
-    text: string[];
-    audio: string[];
-    video: string[];
-    archive: string[];
-  };
+  // 定义各种文件类型的文件扩展名
+  static fileExtensions: FileExtensions;
+
+  // 缓存文件扩展名的条目，以提高性能
+  static cachedEntries: [keyof FileExtensions, string[]][];
 
   /**
-   * 检查文件是否符合某种类型
-   *
-   * @param url 文件的URL或路径，用于检查文件类型
-   * @param type 文件类型，必须是fileExtensions属性中定义的键之一
-   * @returns 如果文件符合指定类型，则返回true；否则返回false
+   * 检查给定URL的文件类型
+   * @param {string} url - 文件的URL
+   * @returns {keyof _FileTypeChecker['fileExtensions'] | 'unknown'} - 返回文件类型或 "unknown"
+   * @throws {Error} - 如果URL无效或指定的文件类型未知，则抛出错误
    */
-  static check(
-    url: string,
-    type: keyof typeof _FileTypeChecker.fileExtensions
-  ): boolean;
+  static check(url: string): keyof FileExtensions | "unknown";
+  /**
+   * 检查给定URL的文件类型
+   * @param {string} url - 文件的URL
+   * @param {keyof _FileTypeChecker['fileExtensions']} [type] - 可选参数，指定要检查的文件类型
+   * @returns {boolean} - 返回布尔值
+   * @throws {Error} - 如果URL无效或指定的文件类型未知，则抛出错误
+   */
+  static check(url: string, type: keyof FileExtensions): boolean;
 
   /**
-   * 内部方法：检查文件扩展名
-   *
-   * @param url 文件的URL或路径，用于提取文件扩展名
-   * @param validExtensions 有效的文件扩展名数组，用于比较
-   * @returns 如果文件扩展名在有效扩展名列表中，则返回true；否则返回false
+   * 检查URL是否具有任何指定的文件扩展名
+   * @param {string} url - 文件的URL
+   * @param {string[]} validExtensions - 有效文件扩展名的数组
+   * @returns {boolean} - 如果URL具有任何指定的文件扩展名，则返回true，否则返回false
    */
   private static _checkExtension(
     url: string,
     validExtensions: string[]
   ): boolean;
+
+  /**
+   * 检测文件URL的类型
+   * @param {string} url - 文件的URL
+   * @returns {keyof _FileTypeChecker['fileExtensions'] | 'unknown'} - 如果URL与任何已知类型匹配，则返回文件类型，否则返回"unknown"
+   */
+  private static _detectFileType(url: string): keyof FileExtensions | "unknown";
 }
 
 /**
