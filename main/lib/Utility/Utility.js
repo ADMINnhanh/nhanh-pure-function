@@ -709,6 +709,32 @@ export class _FileTypeChecker {
   }
 
   /**
+   * 静态方法，用于解析地址信息
+   * 该方法接受一个URL字符串，将其解析为一个包含地址详情的对象数组
+   * 主要用于批量处理以逗号分隔的URL列表，为每个URL生成相应的名称和类型
+   *
+   * @param {string} url - 以逗号分隔的URL字符串，每个URL代表一个资源的位置
+   * @returns {Array} - 包含每个URL及其相关信息（名称和类型）的对象数组
+   * @throws {Error} - 如果提供的URL为空或不是字符串，则抛出错误
+   */
+  static parseAddresses(url) {
+    // 确保提供的URL是字符串且非空
+    if (!url || typeof url !== "string") {
+      throw new Error("Invalid URL provided");
+    }
+
+    // 分割URL字符串并映射每个URL到包含其详细信息的对象
+    return url.split(",").map((url) => {
+      // 从URL中提取名称
+      const name = _GetHrefName(url);
+      // 检查URL的类型
+      const type = this.check(url);
+      // 返回包含URL、名称和类型的对象
+      return { url, name, type };
+    });
+  }
+
+  /**
    * 检查URL是否具有任何指定的文件扩展名
    * @param {string} url - 文件的URL
    * @param {string[]} validExtensions - 有效文件扩展名的数组

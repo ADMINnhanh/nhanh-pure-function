@@ -300,6 +300,19 @@ export class _FileTypeChecker {
   static check(url: string, type: keyof FileExtensions): boolean;
 
   /**
+   * 静态方法，用于解析地址信息
+   * 该方法接受一个URL字符串，将其解析为一个包含地址详情的对象数组
+   * 主要用于批量处理以逗号分隔的URL列表，为每个URL生成相应的名称和类型
+   *
+   * @param {string} url - 以逗号分隔的URL字符串，每个URL代表一个资源的位置
+   * @returns {Array} - 包含每个URL及其相关信息（名称和类型）的对象数组
+   * @throws {Error} - 如果提供的URL为空或不是字符串，则抛出错误
+   */
+  static parseAddresses(
+    url: string
+  ): { url: string; name: string; type: string }[];
+
+  /**
    * 检查URL是否具有任何指定的文件扩展名
    * @param {string} url - 文件的URL
    * @param {string[]} validExtensions - 有效文件扩展名的数组
