@@ -692,7 +692,7 @@ export class _FileTypeChecker {
     }
 
     // 将URL转换为小写，以确保文件扩展名匹配不区分大小写
-    const lowerCaseUrl = url.toLowerCase();
+    const lowerCaseUrl = _GetHrefName(url).toLowerCase();
 
     // 如果指定了文件类型，则检查URL是否具有该类型的任何文件扩展名
     if (type) {
