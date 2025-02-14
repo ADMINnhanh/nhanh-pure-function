@@ -226,28 +226,92 @@ export function _GetHrefName(href, defaultName = "file") {
  * @param {string} href - 文件路径
  * @param {string} [fileName] - 导出文件名
  */
-export async function _DownloadFile(href, fileName) {
-  try {
-    const response = await fetch(href); // 获取文件
-    if (!response.ok) throw new Error("文件下载失败");
+export function _DownloadFile(href, fileName) {
+  return new Promise((resolve, reject) => {
+    _CheckConnectionWithXHR(href)
+      .then(() => {
+        try {
+          if (typeof fileName !== "string") {
+            fileName = _GetHrefName(href, "downloaded_file");
+          }
 
-    const blob = await response.blob(); // 将响应转换为 Blob 对象
-    const url = URL.createObjectURL(blob); // 创建文件 URL
+          fetch(href)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`文件下载失败，状态码: ${response.status}`);
+              }
+              return response.blob();
+            })
+            .then((blob) => {
+              const url = URL.createObjectURL(blob); // 创建文件 URL
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName || _GetHrefName(href, "image");
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = decodeURIComponent(fileName);
 
-    // 临时将 a 标签添加到 DOM，然后触发点击事件，最后移除
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+              // 临时将 a 标签添加到 DOM，然后触发点击事件，最后移除
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
 
-    // 释放 URL 对象
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("下载文件时发生错误:", error);
-  }
+              // 释放 URL 对象
+              URL.revokeObjectURL(url);
+
+              resolve();
+            })
+            .catch((error) => {
+              console.error("下载文件时发生错误:", error.message);
+              reject(error);
+            });
+        } catch (error) {
+          console.error("下载文件时发生错误:", error.message);
+          reject(error);
+        }
+      })
+      .catch(reject);
+
+    // try {
+    //   // 验证 href 和 fileName 是否为合法字符串
+    //   if (typeof href !== "string" || !href.trim()) {
+    //     throw new Error("无效的 href 参数");
+    //   }
+    //   if (typeof fileName !== "string") {
+    //     fileName = _GetHrefName(href, "downloaded_file");
+    //   }
+
+    //   fetch(href)
+    //     .then((response) => {
+    //       if (!response.ok) {
+    //         throw new Error(`文件下载失败，状态码: ${response.status}`);
+    //       }
+    //       return response.blob();
+    //     })
+    //     .then((blob) => {
+    //       const url = URL.createObjectURL(blob); // 创建文件 URL
+
+    //       const a = document.createElement("a");
+    //       a.href = url;
+    //       a.download = decodeURIComponent(fileName);
+
+    //       // 临时将 a 标签添加到 DOM，然后触发点击事件，最后移除
+    //       document.body.appendChild(a);
+    //       a.click();
+    //       document.body.removeChild(a);
+
+    //       // 释放 URL 对象
+    //       URL.revokeObjectURL(url);
+
+    //       resolve();
+    //     })
+    //     .catch((error) => {
+    //       console.error("下载文件时发生错误:", error.message);
+    //       reject(error);
+    //     });
+    // } catch (error) {
+    //   console.error("下载文件时发生错误:", error.message);
+    //   reject(error);
+    // }
+  });
 }
 
 /**
@@ -556,16 +620,52 @@ export function _UpdateTargetByPath(model, path, value) {
  */
 export function _CheckConnectionWithXHR(url) {
   return new Promise((resolve, reject) => {
+    // 前置校验：确保 URL 合法
+    if (typeof url !== "string" || url.trim() === "" || !url.includes("://")) {
+      reject(new Error("Invalid URL: Must be a non-empty string"));
+      return;
+    }
+
+    // 显式处理浏览器兼容性错误（如无效协议或非法字符）
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open("HEAD", url, true);
+    } catch (error) {
+      reject(new Error(`Invalid URL format: ${error.message}`));
+      return;
+    }
+
     const xhr = new XMLHttpRequest();
-    xhr.open("HEAD", url, true); // 发送 HEAD 请求
+    xhr.open("HEAD", url, true);
+
+    // 统一错误处理逻辑
+    const handleError = (event) => {
+      reject(new Error(`Request failed: ${event.type}`));
+    };
+
     xhr.onreadystatechange = function () {
       if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status >= 200 && xhr.status < 300) resolve();
-        else reject(xhr);
+        // 兼容性处理：status=0 可能是跨域或网络错误
+        if (xhr.status === 0) {
+          reject(new Error("Network error or CORS blocked"));
+        } else if (xhr.status >= 200 && xhr.status < 300) {
+          resolve();
+        } else {
+          reject(new Error(`HTTP Error: ${xhr.status}`));
+        }
       }
     };
-    xhr.onerror = reject;
-    xhr.send();
+
+    // 绑定所有可能的错误事件
+    xhr.onerror = handleError; // 网络层错误（如 DNS 解析失败）
+    xhr.onabort = handleError; // 请求被中止
+    xhr.ontimeout = handleError; // 超时
+
+    try {
+      xhr.send();
+    } catch (error) {
+      reject(new Error(`Request send failed: ${error.message}`));
+    }
   });
 }
 
