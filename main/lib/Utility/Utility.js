@@ -269,48 +269,6 @@ export function _DownloadFile(href, fileName) {
         }
       })
       .catch(reject);
-
-    // try {
-    //   // 验证 href 和 fileName 是否为合法字符串
-    //   if (typeof href !== "string" || !href.trim()) {
-    //     throw new Error("无效的 href 参数");
-    //   }
-    //   if (typeof fileName !== "string") {
-    //     fileName = _GetHrefName(href, "downloaded_file");
-    //   }
-
-    //   fetch(href)
-    //     .then((response) => {
-    //       if (!response.ok) {
-    //         throw new Error(`文件下载失败，状态码: ${response.status}`);
-    //       }
-    //       return response.blob();
-    //     })
-    //     .then((blob) => {
-    //       const url = URL.createObjectURL(blob); // 创建文件 URL
-
-    //       const a = document.createElement("a");
-    //       a.href = url;
-    //       a.download = decodeURIComponent(fileName);
-
-    //       // 临时将 a 标签添加到 DOM，然后触发点击事件，最后移除
-    //       document.body.appendChild(a);
-    //       a.click();
-    //       document.body.removeChild(a);
-
-    //       // 释放 URL 对象
-    //       URL.revokeObjectURL(url);
-
-    //       resolve();
-    //     })
-    //     .catch((error) => {
-    //       console.error("下载文件时发生错误:", error.message);
-    //       reject(error);
-    //     });
-    // } catch (error) {
-    //   console.error("下载文件时发生错误:", error.message);
-    //   reject(error);
-    // }
   });
 }
 
@@ -448,13 +406,17 @@ export function _Debounce(fn, delay) {
  * @returns {Function}
  */
 export function _Throttle(fn, delay) {
-  let timer;
+  let lastCallTime = -Infinity;
+
   return function (...args) {
-    if (!timer) {
-      timer = setTimeout(() => {
-        fn.apply(this, args);
-        timer = null;
-      }, delay);
+    const now = performance.now();
+    if (now - lastCallTime > delay) {
+      lastCallTime = now;
+      try {
+        fn(...args);
+      } catch (error) {
+        console.error("Throttled function execution failed:", error);
+      }
     }
   };
 }
