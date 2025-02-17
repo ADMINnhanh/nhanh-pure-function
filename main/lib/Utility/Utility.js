@@ -745,12 +745,12 @@ export class _FileTypeChecker {
    * @param {string} url - 文件的URL
    * @param {string} [type] - 可选参数，指定要检查的文件类型
    * @returns {string} - 如果URL与指定类型或任何已知类型匹配，则返回文件类型，否则返回"unknown"
-   * @throws {Error} - 如果URL无效或指定的文件类型未知，则抛出错误
    */
   static check(url, type) {
     // 确保提供的URL是字符串且非空
     if (!url || typeof url !== "string") {
-      throw new Error("Invalid URL provided");
+      console.error("Invalid URL provided");
+      return type ? false : "unknown";
     }
 
     // 将URL转换为小写，以确保文件扩展名匹配不区分大小写
@@ -760,7 +760,8 @@ export class _FileTypeChecker {
     if (type) {
       // 确保指定的文件类型是已知的
       if (!_FileTypeChecker.fileExtensions.hasOwnProperty(type)) {
-        throw new Error(`Unknown file type: ${type}`);
+        console.error(`Unknown file type: ${type}`);
+        return "unknown";
       }
       const extensions = _FileTypeChecker.fileExtensions[type];
       return _FileTypeChecker._checkExtension(lowerCaseUrl, extensions);
@@ -777,12 +778,12 @@ export class _FileTypeChecker {
    *
    * @param {string} url - 以逗号分隔的URL字符串，每个URL代表一个资源的位置
    * @returns {Array} - 包含每个URL及其相关信息（名称和类型）的对象数组
-   * @throws {Error} - 如果提供的URL为空或不是字符串，则抛出错误
    */
   static parseAddresses(url) {
     // 确保提供的URL是字符串且非空
     if (!url || typeof url !== "string") {
-      throw new Error("Invalid URL provided");
+      console.error("Invalid URL provided");
+      return [];
     }
 
     // 分割URL字符串并映射每个URL到包含其详细信息的对象
@@ -793,6 +794,45 @@ export class _FileTypeChecker {
       const type = this.check(url);
       // 返回包含URL、名称和类型的对象
       return { url, name, type };
+    });
+  }
+
+  /**
+   * 检查 MIME 类型是否与指定的模式匹配
+   * @param {string} type - 要检查的 MIME 类型（如 "image/png"）
+   * @param {string} [accept] - 可接受的 MIME 类型模式（如 "image/*, text/plain"）
+   * @returns {boolean} - 如果类型匹配，则返回 true，否则返回 false
+   */
+  static matchesMimeType(type, accept) {
+    if (
+      !accept ||
+      !type ||
+      typeof accept !== "string" ||
+      typeof type !== "string"
+    )
+      return true;
+
+    const [typeMain, typeSub] = type.split("/");
+    const mimePatterns = accept.split(",");
+
+    return mimePatterns.some((pattern) => {
+      const [patternMain, patternSub] = pattern.split("/");
+
+      // 处理简写格式（如 "image" 等价于 "image/*"）
+      const effectivePatternSub = patternSub || "*";
+      const effectiveTypeSub = typeSub || "*";
+
+      // 主类型匹配：模式包含通配符 或 类型包含通配符 或 精确匹配
+      const mainMatch =
+        patternMain === "*" || typeMain === "*" || patternMain === typeMain;
+
+      // 子类型匹配：同上逻辑
+      const subMatch =
+        effectivePatternSub === "*" ||
+        effectiveTypeSub === "*" ||
+        effectivePatternSub === effectiveTypeSub;
+
+      return mainMatch && subMatch;
     });
   }
 

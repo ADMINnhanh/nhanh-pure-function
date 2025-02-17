@@ -287,7 +287,6 @@ export class _FileTypeChecker {
    * 检查给定URL的文件类型
    * @param {string} url - 文件的URL
    * @returns {keyof _FileTypeChecker['fileExtensions'] | 'unknown'} - 返回文件类型或 "unknown"
-   * @throws {Error} - 如果URL无效或指定的文件类型未知，则抛出错误
    */
   static check(url: string): keyof FileExtensions | "unknown";
   /**
@@ -295,7 +294,6 @@ export class _FileTypeChecker {
    * @param {string} url - 文件的URL
    * @param {keyof _FileTypeChecker['fileExtensions']} [type] - 可选参数，指定要检查的文件类型
    * @returns {boolean} - 返回布尔值
-   * @throws {Error} - 如果URL无效或指定的文件类型未知，则抛出错误
    */
   static check(url: string, type: keyof FileExtensions): boolean;
 
@@ -306,11 +304,18 @@ export class _FileTypeChecker {
    *
    * @param {string} url - 以逗号分隔的URL字符串，每个URL代表一个资源的位置
    * @returns {Array} - 包含每个URL及其相关信息（名称和类型）的对象数组
-   * @throws {Error} - 如果提供的URL为空或不是字符串，则抛出错误
    */
   static parseAddresses(
     url: string
-  ): { url: string; name: string; type: string }[];
+  ): { url: string; name: string; type: keyof FileExtensions | "unknown" }[];
+
+  /**
+   * 检查 MIME 类型是否与指定的模式匹配
+   * @param {string} type - 要检查的 MIME 类型（如 "image/png"）
+   * @param {string} [accept] - 可接受的 MIME 类型模式（如 "image/*, text/plain"）
+   * @returns {boolean} - 如果类型匹配，则返回 true，否则返回 false
+   */
+  static matchesMimeType(type: string, accept?: string): boolean;
 
   /**
    * 检查URL是否具有任何指定的文件扩展名
