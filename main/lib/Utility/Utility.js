@@ -1,3 +1,5 @@
+import { EXTENSION_TO_MIME, FILE_EXTENSIONS } from "../Constant";
+
 /**
  * 非null | undefined判断
  * @param value any
@@ -141,39 +143,27 @@ export function _TimeTransition(
   template = "YYYY-MM-DD hh:mm:ss",
   pad = true
 ) {
-  try {
-    time = new Date(time);
-  } catch (error) {
-    console.error(error);
+  const date = new Date(time);
+
+  if (isNaN(date.getTime())) {
+    console.error("Invalid date");
     return "";
   }
+
   const dictionary = {
-    YYYY: "getFullYear",
-    MM: "getMonth",
-    DD: "getDate",
-    hh: "getHours",
-    mm: "getMinutes",
-    ss: "getSeconds",
-    ms: (num) => +num % 1000,
+    YYYY: (date) => date.getFullYear(),
+    MM: (date) => date.getMonth() + 1, // Adjust for 0-based month
+    DD: (date) => date.getDate(),
+    hh: (date) => date.getHours(),
+    mm: (date) => date.getMinutes(),
+    ss: (date) => date.getSeconds(),
+    ms: (date) => date.getMilliseconds(),
   };
-  for (const key in dictionary) {
-    if (Object.hasOwnProperty.call(dictionary, key)) {
-      if (new RegExp(key).test(template)) {
-        let value,
-          fun = dictionary[key];
 
-        if (typeof fun == "function") value = fun(time);
-        else value = time[fun]();
-
-        if (key == "MM") value++;
-
-        if (pad) value = String(value).padStart(2, "0");
-
-        template = template.replace(key, value);
-      }
-    }
-  }
-  return template;
+  return template.replace(/YYYY|MM|DD|hh|mm|ss|ms/g, (match) => {
+    const value = dictionary[match](date);
+    return pad ? String(value).padStart(2, "0") : String(value);
+  });
 }
 
 /**
@@ -667,78 +657,8 @@ export function _IsSecureContext(url) {
  * 用于检查文件URL的类型
  */
 export class _FileTypeChecker {
-  // 定义各种文件类型的文件扩展名
-  static fileExtensions = {
-    image: [
-      ".jpg",
-      ".jpeg",
-      ".png",
-      ".gif",
-      ".bmp",
-      ".webp",
-      ".tiff",
-      ".svg",
-      ".heif",
-      ".heic",
-      ".ico",
-      ".raw",
-      ".jfif",
-    ],
-    ppt: [".ppt", ".pptx"],
-    word: [".doc", ".docx"],
-    excel: [".xls", ".xlsx"],
-    pdf: [".pdf"],
-    text: [".txt", ".csv"],
-    audio: [
-      ".mp3",
-      ".wav",
-      ".ogg",
-      ".flac",
-      ".aac",
-      ".wma",
-      ".m4a",
-      ".alac",
-      ".ape",
-      ".opus",
-      ".amr",
-      ".ra",
-    ],
-    video: [
-      ".mp4",
-      ".avi",
-      ".mkv",
-      ".mov",
-      ".wmv",
-      ".flv",
-      ".webm",
-      ".mpg",
-      ".mpeg",
-      ".3gp",
-      ".vob",
-      ".ogv",
-      ".m4v",
-      ".ts",
-      ".rm",
-      ".rmvb",
-    ],
-    archive: [
-      ".zip",
-      ".rar",
-      ".tar",
-      ".gz",
-      ".bz2",
-      ".xz",
-      ".7z",
-      ".tar.gz",
-      ".tar.bz2",
-      ".tar.xz",
-    ],
-    code: [".js", ".ts", ".py", ".java", ".cpp", ".c"],
-    font: [".woff", ".woff2", ".ttf", ".otf"],
-  };
-
   // 缓存文件扩展名的条目，以提高性能
-  static cachedEntries = Object.entries(_FileTypeChecker.fileExtensions);
+  static cachedEntries = Object.entries(FILE_EXTENSIONS);
 
   /**
    * 检查给定URL的文件类型
@@ -759,11 +679,11 @@ export class _FileTypeChecker {
     // 如果指定了文件类型，则检查URL是否具有该类型的任何文件扩展名
     if (type) {
       // 确保指定的文件类型是已知的
-      if (!_FileTypeChecker.fileExtensions.hasOwnProperty(type)) {
+      if (!FILE_EXTENSIONS.hasOwnProperty(type)) {
         console.error(`Unknown file type: ${type}`);
         return "unknown";
       }
-      const extensions = _FileTypeChecker.fileExtensions[type];
+      const extensions = FILE_EXTENSIONS[type];
       return _FileTypeChecker._checkExtension(lowerCaseUrl, extensions);
     }
 
@@ -804,36 +724,61 @@ export class _FileTypeChecker {
    * @returns {boolean} - 如果类型匹配，则返回 true，否则返回 false
    */
   static matchesMimeType(type, accept) {
+    // 参数有效性检查
     if (
       !accept ||
       !type ||
       typeof accept !== "string" ||
       typeof type !== "string"
-    )
+    ) {
       return true;
+    }
 
-    const [typeMain, typeSub] = type.split("/");
-    const mimePatterns = accept.split(",");
+    // 标准化类型和接受模式
+    const normalizedType = _FileTypeChecker._normalizeType(type);
+    const mimePatterns = accept
+      .split(",")
+      .map((pattern) => _FileTypeChecker._normalizeType(pattern.trim()));
+
+    // 拆分主/子类型
+    const [typeMain, typeSub = "*"] = normalizedType.split("/");
 
     return mimePatterns.some((pattern) => {
-      const [patternMain, patternSub] = pattern.split("/");
+      const [patternMain, patternSub = "*"] = pattern.split("/");
 
-      // 处理简写格式（如 "image" 等价于 "image/*"）
-      const effectivePatternSub = patternSub || "*";
-      const effectiveTypeSub = typeSub || "*";
-
-      // 主类型匹配：模式包含通配符 或 类型包含通配符 或 精确匹配
+      // 主类型匹配逻辑
       const mainMatch =
         patternMain === "*" || typeMain === "*" || patternMain === typeMain;
 
-      // 子类型匹配：同上逻辑
+      // 子类型匹配逻辑
       const subMatch =
-        effectivePatternSub === "*" ||
-        effectiveTypeSub === "*" ||
-        effectivePatternSub === effectiveTypeSub;
+        patternSub === "*" || typeSub === "*" || patternSub === typeSub;
 
       return mainMatch && subMatch;
     });
+  }
+
+  /**
+   * 类型标准化函数
+   * 该函数旨在将文件类型或MIME类型字符串转换为标准格式
+   * 主要处理三种情况：带扩展名的字符串、简写格式的类型以及已标准格式的类型
+   *
+   * @param {string} type - 文件类型或MIME类型字符串
+   * @returns {string} 标准化的MIME类型字符串，如果无法识别则返回原始输入
+   */
+  static _normalizeType(type) {
+    // 处理扩展名（如 .mp3）
+    if (type.startsWith(".") && !type.includes("/")) {
+      return EXTENSION_TO_MIME[type.toLowerCase()] || type;
+    }
+
+    // 处理简写格式（如 "image" 转换为 "image/*"）
+    if (!type.includes("/")) {
+      return `${type}/*`;
+    }
+
+    // 返回原始输入，因为它已经是标准格式
+    return type;
   }
 
   /**

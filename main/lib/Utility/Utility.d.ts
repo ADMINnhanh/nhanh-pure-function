@@ -318,6 +318,16 @@ export class _FileTypeChecker {
   static matchesMimeType(type: string, accept?: string): boolean;
 
   /**
+   * 类型标准化函数
+   * 该函数旨在将文件类型或MIME类型字符串转换为标准格式
+   * 主要处理三种情况：带扩展名的字符串、简写格式的类型以及已标准格式的类型
+   *
+   * @param {string} type - 文件类型或MIME类型字符串
+   * @returns {string} 标准化的MIME类型字符串，如果无法识别则返回原始输入
+   */
+  static _normalizeType(type: string): string;
+
+  /**
    * 检查URL是否具有任何指定的文件扩展名
    * @param {string} url - 文件的URL
    * @param {string[]} validExtensions - 有效文件扩展名的数组
