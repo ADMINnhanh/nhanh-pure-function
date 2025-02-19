@@ -1,16 +1,24 @@
-import { _IsObject, _NotNull, _Debounce } from "../Utility/Utility";
+import { _IsObject, _NotNull, _Debounce } from "../Utility";
+import {
+  DragOption,
+  EventFunctionMap,
+  LocalDragOptions,
+  UiLibrary,
+} from "./type";
 
 /**
  * 滚动结束监听器
  * @param {(trigger: "vertical" | "horizontal") => void} callback
  */
-export function _ScrollEndListener(callback) {
+export function _ScrollEndListener(
+  callback: (trigger: "vertical" | "horizontal") => void
+) {
   const debouncedCallback = _Debounce(callback, 100);
   let lastScrollTop = 0;
   let lastScrollLeft = 0;
-  return function (payload) {
+  return function (payload: Event) {
     const target = payload.target;
-    if (!target) return;
+    if (!target || !(target instanceof HTMLElement)) return;
 
     const {
       scrollTop,
@@ -53,14 +61,22 @@ export function _ScrollEndListener(callback) {
  * @param  options.uiLibrary 项目使用的 ui库 , 用于排除  ui库 创建的元素 , 避免点击 ui库 创建的元素时意外的执行 callback
  * @param  options.isClickAllowed 是否允许该点击 ( 如果不确定可以返回 undefined )
  */
-export function _CloseOnOutsideClick(querySelector, callback, options) {
+export function _CloseOnOutsideClick(
+  querySelector: string[],
+  callback: Function,
+  options?: {
+    uiLibrary?: UiLibrary[];
+    isClickAllowed?: (event: MouseEvent) => boolean | undefined;
+  }
+) {
   const { isClickAllowed, uiLibrary = ["naiveUI", "ElementPlus", "Element"] } =
     options || {};
 
   const UI = (function (obj) {
-    const arr = [];
+    const arr: string[] = [];
     for (const key in obj) {
       if (Object.hasOwnProperty.call(obj, key)) {
+        /** @ts-ignore */
         if (uiLibrary.includes(key)) arr.push(...obj[key]);
       }
     }
@@ -79,7 +95,7 @@ export function _CloseOnOutsideClick(querySelector, callback, options) {
     callback();
     document.removeEventListener("mousedown", mousedown);
   }
-  function mousedown(event) {
+  function mousedown(event: MouseEvent) {
     if (isClickAllowed) {
       const bool = isClickAllowed(event);
       if (bool) return;
@@ -89,7 +105,7 @@ export function _CloseOnOutsideClick(querySelector, callback, options) {
     const target = event.target;
 
     /** 元素这时可能已经被删除了 */
-    if (!target?.closest("body")) return;
+    if (!(target instanceof HTMLElement) || !target?.closest("body")) return;
 
     const isClickable = querySelector
       .concat(UI)
@@ -104,17 +120,17 @@ export function _CloseOnOutsideClick(querySelector, callback, options) {
 
 /** 拖拽dom */
 export class _Drag {
-  #dom = null;
+  #dom: DragOption["dragDom"] = undefined;
   #isAllowed = false;
-  #eventFunction = {};
+  #eventFunction: EventFunctionMap = {};
   #pageX = 0;
   #pageY = 0;
   #top = 0;
   #left = 0;
-  #limit;
-  #dragDom;
+  #limit: DragOption["limit"] = undefined;
+  #dragDom: DragOption["dragDom"] = undefined;
 
-  init(dom, option) {
+  init(dom: HTMLElement, option?: DragOption) {
     this.#dom = dom;
     this.#limit = option?.limit;
     this.#dragDom = option?.dragDom;
@@ -129,14 +145,14 @@ export class _Drag {
   finish() {
     this.bindOrUnbindEvent("unbind");
   }
-  bindOrUnbindEvent(type) {
+  bindOrUnbindEvent(type: "bind" | "unbind") {
     const EventType =
       type === "bind" ? "addEventListener" : "removeEventListener";
     if (!this.#dom) return console.error("No DOM");
 
-    this.#dom[EventType]("mousedown", this.#eventFunction.mousedown);
-    document[EventType]("mousemove", this.#eventFunction.mousemove);
-    document[EventType]("mouseup", this.#eventFunction.mouseup);
+    this.#dom[EventType]("mousedown", this.#eventFunction.mousedown!);
+    document[EventType]("mousemove", this.#eventFunction.mousemove!);
+    document[EventType]("mouseup", this.#eventFunction.mouseup!);
   }
   alterLocation() {
     if (!this.#dom) return console.error("No DOM");
@@ -149,7 +165,7 @@ export class _Drag {
     this.#dom.style.setProperty("--top", this.#top + "px");
     this.#dom.style.setProperty("--left", this.#left + "px");
   }
-  mousedown(event) {
+  mousedown(event: Event) {
     if (!this.#dom) return console.error("No DOM");
     if (this.#dragDom && event.target != this.#dragDom) return;
     document.body.classList.add("no-select");
@@ -157,14 +173,14 @@ export class _Drag {
     this.#isAllowed = true;
     const clientRect = this.#dom.getBoundingClientRect();
 
-    const { pageX, pageY } = event;
+    const { pageX, pageY } = event as MouseEvent;
     this.#pageX = pageX;
     this.#pageY = pageY;
     this.#top = clientRect.y;
     this.#left = clientRect.x;
   }
-  mousemove(event) {
-    const { pageX, pageY } = event;
+  mousemove(event: Event) {
+    const { pageX, pageY } = event as MouseEvent;
     if (this.#isAllowed) {
       this.#top += pageY - this.#pageY;
       this.#left += pageX - this.#pageX;
@@ -184,18 +200,18 @@ export class _Drag {
 
 /** 局部拖拽 计算位置距离/百分比 */
 export class _LocalDrag {
-  #parentDom = null;
+  #parentDom: DragOption["dragDom"] = undefined;
   #isAllowed = false;
-  #eventFunction = {};
+  #eventFunction: EventFunctionMap = {};
   #clientRectX = 0;
   #clientRectY = 0;
   #top = 0;
   #left = 0;
-  #limit;
-  #update_move;
-  #update_up;
+  #limit: LocalDragOptions["limit"] = undefined;
+  #update_move: LocalDragOptions["update_move"] = undefined;
+  #update_up: LocalDragOptions["update_up"] = undefined;
 
-  init(parentDom, options = {}) {
+  init(parentDom: HTMLElement, options: LocalDragOptions = {}) {
     this.#parentDom = parentDom;
     this.#limit = options.limit;
     this.#update_move = options.update_move;
@@ -211,22 +227,23 @@ export class _LocalDrag {
   finish() {
     this.bindOrUnbindEvent("unbind");
   }
-  bindOrUnbindEvent(type) {
+  bindOrUnbindEvent(type: "bind" | "unbind") {
     const EventType =
       type === "bind" ? "addEventListener" : "removeEventListener";
-    if (!this.#parentDom) return window.customize_error("No DOM");
+    if (!this.#parentDom) return console.error("No DOM");
 
-    this.#parentDom[EventType]("mousedown", this.#eventFunction.mousedown);
-    document[EventType]("mousemove", this.#eventFunction.mousemove);
-    document[EventType]("mouseup", this.#eventFunction.mouseup);
+    this.#parentDom[EventType]("mousedown", this.#eventFunction.mousedown!);
+    document[EventType]("mousemove", this.#eventFunction.mousemove!);
+    document[EventType]("mouseup", this.#eventFunction.mouseup!);
   }
   updateValue() {
     const value = {
       top: this.#top,
       left: this.#left,
+      percentage: { top: 0, left: 0 },
     };
     if (this.#limit) {
-      const v = (type) =>
+      const v = (type: "top" | "left") =>
         this.#limit
           ? (value[type] - this.#limit.min[type]) /
             (this.#limit.max[type] - this.#limit.min[type])
@@ -240,7 +257,7 @@ export class _LocalDrag {
     return value;
   }
   alterLocation() {
-    if (!this.#parentDom) return window.customize_error("No DOM");
+    if (!this.#parentDom) return console.error("No DOM");
     if (this.#limit) {
       this.#top = Math.min(this.#top, this.#limit.max.top);
       this.#top = Math.max(this.#top, this.#limit.min.top);
@@ -252,8 +269,8 @@ export class _LocalDrag {
     this.#parentDom.style.setProperty("--top", this.#top + "px");
     this.#parentDom.style.setProperty("--left", this.#left + "px");
   }
-  mousedown(event) {
-    if (!this.#parentDom) return window.customize_error("No DOM");
+  mousedown(event: Event) {
+    if (!this.#parentDom) return console.error("No DOM");
     document.body.classList.add("no-select");
 
     this.#isAllowed = true;
@@ -261,14 +278,14 @@ export class _LocalDrag {
     this.#clientRectY = clientRect.y;
     this.#clientRectX = clientRect.x;
 
-    const { pageX, pageY } = event;
+    const { pageX, pageY } = event as MouseEvent;
     this.#top = pageY - this.#clientRectY;
     this.#left = pageX - this.#clientRectX;
 
     this.alterLocation();
   }
-  mousemove(event) {
-    const { pageX, pageY } = event;
+  mousemove(event: Event) {
+    const { pageX, pageY } = event as MouseEvent;
     if (this.#isAllowed) {
       this.#top = pageY - this.#clientRectY;
       this.#left = pageX - this.#clientRectX;
@@ -285,44 +302,50 @@ export class _LocalDrag {
 }
 
 /** 进入全屏模式 */
-export function _EnterFullscreen(content) {
+export function _EnterFullscreen(content: HTMLElement): Promise<void> {
+  const ts_content = content as any;
   if (!content) {
-    return Promise.reject("No DOM: ", content);
+    return Promise.reject("No DOM");
   } else if (content.requestFullscreen) {
     return content.requestFullscreen();
-  } else if (content.mozRequestFullScreen) {
+  } else if (ts_content.mozRequestFullScreen) {
     // Firefox
-    return content.mozRequestFullScreen();
-  } else if (content.webkitRequestFullscreen) {
+    return ts_content.mozRequestFullScreen();
+  } else if (ts_content.webkitRequestFullscreen) {
     // Chrome, Safari and Opera
-    return content.webkitRequestFullscreen();
-  } else if (content.msRequestFullscreen) {
+    return ts_content.webkitRequestFullscreen();
+  } else if (ts_content.msRequestFullscreen) {
     // IE/Edge
-    return content.msRequestFullscreen();
+    return ts_content.msRequestFullscreen();
   }
+  return Promise.reject("No Fullscreen API");
 }
 /** 退出全屏模式 */
-export function _ExitFullscreen() {
+export function _ExitFullscreen(): Promise<void> {
+  const ts_document = document as any;
+
   if (document.exitFullscreen) {
     return document.exitFullscreen();
-  } else if (document.mozCancelFullScreen) {
+  } else if (ts_document.mozCancelFullScreen) {
     // Firefox
-    return document.mozCancelFullScreen();
-  } else if (document.webkitExitFullscreen) {
+    return ts_document.mozCancelFullScreen();
+  } else if (ts_document.webkitExitFullscreen) {
     // Chrome, Safari and Opera
-    return document.webkitExitFullscreen();
-  } else if (document.msExitFullscreen) {
+    return ts_document.webkitExitFullscreen();
+  } else if (ts_document.msExitFullscreen) {
     // IE/Edge
-    return document.msExitFullscreen();
+    return ts_document.msExitFullscreen();
   }
+  return Promise.reject("No ExitFullscreen API");
 }
 /** 判断是否处于全屏模式 */
-export function _IsFullscreen() {
+export function _IsFullscreen(): HTMLElement | undefined {
+  const ts_document = document as any;
   return (
     document.fullscreenElement ||
-    document.webkitFullscreenElement ||
-    document.mozFullScreenElement ||
-    document.msFullscreenElement
+    ts_document.webkitFullscreenElement ||
+    ts_document.mozFullScreenElement ||
+    ts_document.msFullscreenElement
   );
 }
 /**
@@ -330,9 +353,25 @@ export function _IsFullscreen() {
  * @param {HTMLElement} content - 需要进入全屏的元素
  * 该函数通过检查不同浏览器的特定方法来实现全屏切换
  */
-export function _Fullscreen(content) {
+export function _Fullscreen(content: HTMLElement) {
   return function () {
     if (_IsFullscreen()) _ExitFullscreen();
     else _EnterFullscreen(content);
   };
+}
+
+/**
+ * 单位转换 12** -> **px
+ * @param {string} width
+ * @returns 对应的单位为px的宽
+ */
+export function _GetOtherSizeInPixels(width: string) {
+  if (typeof width == "number") return width;
+  if (/px/.test(width)) return Number(width.replace(/px/, "")) || 0;
+  const dom = document.createElement("div");
+  dom.style.width = width;
+  document.body.appendChild(dom);
+  const widthPX = parseFloat(window.getComputedStyle(dom).width);
+  document.body.removeChild(dom);
+  return widthPX;
 }

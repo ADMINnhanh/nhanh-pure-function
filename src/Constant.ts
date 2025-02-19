@@ -247,3 +247,19 @@ export const FILE_EXTENSIONS = {
     ".php",
   ],
 };
+
+export const UNIT_LABELS = [
+  "",
+  "万",
+  "亿",
+  "兆",
+  "京",
+  "垓",
+  "秭",
+  "穰",
+  "沟",
+  "涧",
+  "正",
+  "载",
+  "极",
+];
