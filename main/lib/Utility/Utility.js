@@ -724,15 +724,9 @@ export class _FileTypeChecker {
    * @returns {boolean} - 如果类型匹配，则返回 true，否则返回 false
    */
   static matchesMimeType(type, accept) {
-    // 参数有效性检查
-    if (
-      !accept ||
-      !type ||
-      typeof accept !== "string" ||
-      typeof type !== "string"
-    ) {
-      return true;
-    }
+    /** 如果 accept 为空，则默认为 true */
+    if (!accept) return true;
+    if (typeof type !== "string" || typeof accept !== "string") return false;
 
     // 标准化类型和接受模式
     const normalizedType = _FileTypeChecker._normalizeType(type);
