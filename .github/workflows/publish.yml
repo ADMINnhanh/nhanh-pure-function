@@ -22,9 +22,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Debug project structure
-        run: ls -R
-
       - name: Build the project
         run: npm run build
 
