@@ -3,7 +3,6 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
-  base: "./",
   // 配置 TypeScript 路径别名
   plugins: [
     tsconfigPaths(),
