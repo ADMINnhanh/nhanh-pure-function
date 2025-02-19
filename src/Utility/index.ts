@@ -89,7 +89,7 @@ export function _CapitalizeFirstLetter(string: string) {
  * 合并对象  注意: 本函数会直接操作 A
  * @param {Object | Array} A
  * @param {Object | Array} B
- * @returns A&B || B
+ * @returns (A & B) | A | B | undefined
  */
 export function _MergeObjects<T, T1>(
   A: T,

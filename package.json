@@ -1,6 +1,6 @@
 {
   "name": "nhanh-pure-function",
-  "version": "1.4.2",
+  "version": "2.0.0",
   "description": "纯函数工具",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
