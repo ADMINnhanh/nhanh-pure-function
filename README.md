@@ -8,3 +8,12 @@
 
 ```bash
 npm install nhanh-pure-function
+```
+
+## 功能介绍
+
+`nhanh-pure-function` 库旨在提供一系列纯函数，这些函数在处理数据时不会产生副作用，确保函数的输入和输出之间的映射关系是确定的。这使得代码更易于测试、维护和复用。
+
+## 许可证
+
+[MIT](https://opensource.org/licenses/MIT)
