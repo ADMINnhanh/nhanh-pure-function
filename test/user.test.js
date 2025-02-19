@@ -1,1 +1,1 @@
- 
+import {} from "../src/User";

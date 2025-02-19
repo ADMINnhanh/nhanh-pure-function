@@ -365,13 +365,14 @@ export function _Fullscreen(content: HTMLElement) {
  * @param {string} width
  * @returns 对应的单位为px的宽
  */
-export function _GetOtherSizeInPixels(width: string) {
+export function _GetOtherSizeInPixels(width: string, target?: HTMLElement) {
   if (typeof width == "number") return width;
   if (/px/.test(width)) return Number(width.replace(/px/, "")) || 0;
   const dom = document.createElement("div");
   dom.style.width = width;
-  document.body.appendChild(dom);
-  const widthPX = parseFloat(window.getComputedStyle(dom).width);
-  document.body.removeChild(dom);
+  target = target || document.body;
+  target.appendChild(dom);
+  const widthPX = dom.getBoundingClientRect().width;
+  target.removeChild(dom);
   return widthPX;
 }
