@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import dts from "vite-plugin-dts";
+import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
 export default defineConfig({
   // 配置 TypeScript 路径别名
@@ -9,6 +10,7 @@ export default defineConfig({
     dts({
       insertTypesEntry: true, // 插入类型入口
     }),
+    cssInjectedByJsPlugin(), // 将 CSS 注入到 JS 中
   ],
   // 构建配置
   build: {
