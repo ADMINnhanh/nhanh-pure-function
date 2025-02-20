@@ -1,4 +1,9 @@
-import { EXTENSION_TO_MIME, FILE_EXTENSIONS, WindowTarget } from "../Constant";
+import {
+  EXTENSION_TO_MIME,
+  FILE_EXTENSIONS,
+  FileType,
+  WindowTarget,
+} from "../Constant";
 
 /**
  * 非null | undefined判断
@@ -609,7 +614,6 @@ export function _IsSecureContext(url: string) {
   return secureProtocols.some((protocol) => url.startsWith(protocol));
 }
 
-type FileType = keyof typeof FILE_EXTENSIONS;
 /**
  * 文件类型检查器类
  * 用于检查文件URL的类型

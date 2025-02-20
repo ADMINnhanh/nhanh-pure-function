@@ -247,6 +247,7 @@ export const FILE_EXTENSIONS = {
     ".php",
   ],
 };
+export type FileType = keyof typeof FILE_EXTENSIONS;
 
 export const UNIT_LABELS = [
   "",
