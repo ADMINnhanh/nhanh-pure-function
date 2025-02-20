@@ -1,4 +1,4 @@
-import { EXTENSION_TO_MIME, FILE_EXTENSIONS } from "../Constant";
+import { EXTENSION_TO_MIME, FILE_EXTENSIONS, WindowTarget } from "../Constant";
 
 /**
  * 非null | undefined判断
@@ -98,14 +98,13 @@ export function _MergeObjects<T, T1>(
   outTime = +new Date()
 ): (T & T1) | T | T1 | undefined {
   /** 疑似死循环 */
-  if (outTime < +new Date() - 300) {
+  if (outTime < +new Date() - 50) {
     console.error("_MergeObjects 合并异常：疑似死循环");
     return undefined;
   }
 
-  const getType = (v: any) => (Array.isArray(v) ? "array" : typeof v);
-  const TA = getType(A);
-  const TB = getType(B);
+  const TA = _DataType(A);
+  const TB = _DataType(B);
 
   if (TA != TB) return B;
 
@@ -319,23 +318,6 @@ export function _CreateAndDownloadFile(
   document.body.removeChild(downloadLink); // 然后从文档中移除
   // 最后，别忘了撤销 Blob 对象的 URL，以释放资源
   URL.revokeObjectURL(url);
-}
-
-/**
- * 获取url参数
- * @param {string} url
- * @returns {Object}
- */
-export function _GetQueryParams(url: string) {
-  const queryString = url.split("?")[1] || "";
-  const params = new URLSearchParams(queryString);
-  const result: Record<string, string> = {};
-
-  params.forEach((value, key) => {
-    result[key] = value;
-  });
-
-  return result;
 }
 
 /**
@@ -634,10 +616,16 @@ type FileType = keyof typeof FILE_EXTENSIONS;
  */
 export class _FileTypeChecker {
   // 缓存文件扩展名的条目，以提高性能
-  static cachedEntries = Object.entries(FILE_EXTENSIONS) as [
+  private static cachedEntries = Object.entries(FILE_EXTENSIONS) as [
     FileType,
     string[]
   ][];
+
+  constructor() {
+    if (new.target === _FileTypeChecker) {
+      throw new Error("请直接使用静态方法，而不是实例化此类");
+    }
+  }
 
   /**
    * 检查给定URL的文件类型
@@ -827,5 +815,99 @@ export function _Clone<T>(val: T) {
     console.error("structuredClone error:", error);
     // @ts-ignore 如果oldClone存在且之前的尝试失败，则再次使用newClone方法尝试克隆
     return oldClone && newClone(val);
+  }
+}
+
+/**
+ * 管理通过键值对打开的窗口
+ */
+export class _KeyedWindowManager {
+  // 存储键与对应窗口的Map
+  private static keys = new Map<string, Window>();
+
+  /**
+   * 构造函数
+   * @throws 如果尝试实例化该类，则抛出错误，因为应该使用静态方法
+   */
+  constructor() {
+    if (new.target === _KeyedWindowManager) {
+      throw new Error("请直接使用静态方法，而不是实例化此类");
+    }
+  }
+
+  /**
+   * 根据键打开或聚焦窗口
+   * @param key 窗口的唯一键
+   * @param url 要打开的URL
+   * @param target 窗口的目标
+   * @param windowFeatures 新窗口的特性
+   * @returns 返回已打开或新打开的窗口
+   */
+  static open(
+    key: string,
+    url?: string,
+    target?: WindowTarget,
+    windowFeatures?: string
+  ) {
+    const win = this.keys.get(key);
+    if (win && !win.closed) {
+      win.focus();
+      return win;
+    } else {
+      const newWin = window.open(url, target, windowFeatures);
+      if (newWin) {
+        this.keys.set(key, newWin);
+
+        // 监听窗口关闭事件，以便从Map中移除已关闭的窗口
+        newWin.addEventListener("unload", () => this.keys.delete(key));
+
+        return newWin;
+      } else {
+        console.error("window.open failed: 可能是浏览器阻止了弹出窗口");
+        this.keys.delete(key);
+      }
+    }
+  }
+
+  /**
+   * 关闭与指定键关联的窗口
+   * @param key 窗口的唯一键
+   */
+  static close(key: string): void {
+    const windowToClose = this.keys.get(key);
+    if (windowToClose && !windowToClose.closed) {
+      windowToClose.close();
+      this.keys.delete(key);
+    }
+  }
+
+  /**
+   * 检查指定键的窗口是否打开
+   * @param key 窗口的唯一键
+   * @returns 如果窗口打开则返回true，否则返回false
+   */
+  static isOpen(key: string): boolean {
+    const window = this.keys.get(key);
+    return !!window && !window.closed;
+  }
+
+  /**
+   * 获取与指定键关联的窗口
+   * @param key 窗口的唯一键
+   * @returns 返回对应的窗口，如果窗口已关闭则返回undefined
+   */
+  static getWindow(key: string) {
+    const window = this.keys.get(key);
+    if (window && !window.closed) return window;
+  }
+
+  /**
+   * 关闭所有打开的窗口并清空Map
+   */
+  static closeAll(): void {
+    this.keys.forEach((window, key) => {
+      if (!window.closed) window.close();
+      this.keys.delete(key);
+    });
   }
 }

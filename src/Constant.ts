@@ -262,4 +262,7 @@ export const UNIT_LABELS = [
   "正",
   "载",
   "极",
-];
+] as const;
+
+export const WINDOW_TARGET = ["_self", "_blank", "_parent", "_top"] as const;
+export type WindowTarget = (typeof WINDOW_TARGET)[number];
