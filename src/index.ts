@@ -65,7 +65,7 @@ class RejectTip extends TipFlow {
   }
 }
 
-class _Tip {
+export class _Tip {
   static tips: Record<TipType, TipHandler> = {
     info: undefined,
     success: undefined,
