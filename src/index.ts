@@ -56,11 +56,11 @@ class RejectTip extends TipFlow {
   }
 
   info(...args: any[]) {
-    const resolve = () => _Tip.tips.warning?.(...args);
+    const resolve = () => _Tip.tips.info?.(...args);
     return new TipFlow(resolve, this.reject);
   }
   success(...args: any[]) {
-    const resolve = () => _Tip.tips.warning?.(...args);
+    const resolve = () => _Tip.tips.success?.(...args);
     return new TipFlow(resolve, this.reject);
   }
 }
@@ -89,22 +89,23 @@ export class _Tip {
     _Tip.tips[type] = handler;
   }
 
-  static info(...args: any[]) {
-    const tip = () => _Tip.tips.warning?.(...args);
-    return new ResolveTip(tip);
+  private static resolveTip(type: "info" | "success") {
+    return function (...args: any[]) {
+      const tip = () => _Tip.tips[type]?.(...args);
+      return new ResolveTip(tip);
+    };
   }
-  static success(...args: any[]) {
-    const tip = () => _Tip.tips.success?.(...args);
-    return new ResolveTip(tip);
+  static info = _Tip.resolveTip("info");
+  static success = _Tip.resolveTip("success");
+
+  private static rejectTip(type: "warning" | "error") {
+    return function (...args: any[]) {
+      const tip = () => _Tip.tips[type]?.(...args);
+      return new RejectTip(tip);
+    };
   }
-  static warning(...args: any[]) {
-    const tip = () => _Tip.tips.warning?.(...args);
-    return new RejectTip(tip);
-  }
-  static error(...args: any[]) {
-    const tip = () => _Tip.tips.error?.(...args);
-    return new RejectTip(tip);
-  }
+  static warning = _Tip.rejectTip("warning");
+  static error = _Tip.rejectTip("error");
 }
 
 // const messageTypes = ["info", "warning", "success", "error"] as const;
@@ -113,7 +114,9 @@ export class _Tip {
 //   _Tip.register(type, (...args) => window.$message[type](...args));
 // });
 // console.log(_Tip.success("加载成功").error("加载失败").run(123));
-// console.log(_Tip.error("加载失败").run(123));
+// console.log(_Tip.error("加载失败").success("加载成功").run(0));
+// console.log(_Tip.info("加载成功").warning("加载失败").run(123));
+// console.log(_Tip.warning("加载失败").info("加载成功").run(0));
 // _Tip
 //   .info("加载成功")
 //   .warning("加载失败")
