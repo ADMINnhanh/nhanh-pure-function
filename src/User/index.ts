@@ -376,3 +376,42 @@ export function _GetOtherSizeInPixels(width: string, target?: HTMLElement) {
   target.removeChild(dom);
   return widthPX;
 }
+
+/**
+ * 异步加载图片，并返回图片对象及其宽高比
+ * @param src 图片的URL地址
+ * @param timeout 超时时间，单位为毫秒，默认为5000ms
+ * @returns 一个Promise对象，包含加载的图片对象及其宽高比
+ */
+export function _LoadImage(
+  src: string,
+  timeout: number = 5000
+): Promise<[HTMLImageElement, number]> {
+  return new Promise((resolve, reject) => {
+    const img: HTMLImageElement = new Image();
+    img.src = src;
+
+    // 设置超时处理
+    const timeoutId = setTimeout(() => {
+      reject(new Error("图片加载超时"));
+      img.onload = null;
+      img.onerror = null;
+    }, timeout);
+
+    img.onload = () => {
+      clearTimeout(timeoutId); // 清除超时计时器
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+      const aspectRatio = width / height;
+      resolve([img, aspectRatio]);
+    };
+
+    img.onerror = () => {
+      clearTimeout(timeoutId); // 清除超时计时器
+      reject(new Error("图片加载失败"));
+    };
+
+    // 可选：增加跨域支持
+    img.crossOrigin = "Anonymous";
+  });
+}
