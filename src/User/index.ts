@@ -378,6 +378,55 @@ export function _GetOtherSizeInPixels(width: string, target?: HTMLElement) {
 }
 
 /**
+ * 根据给定的宽高比和目标元素或尺寸，计算画布的尺寸
+ * 此函数旨在适应不同场景下，如何根据宽高比约束，计算出适合的画布大小
+ *
+ * @param aspectRatio 宽高比，表示期望的画布宽度与高度的比例
+ * @param target 目标元素或尺寸，可以是DOM元素、选择器字符串或尺寸数组
+ * @returns 返回计算后的画布尺寸，格式为[宽度, 高度]
+ */
+export function _CalculateCanvasSize(
+  aspectRatio: number,
+  target: Element | string | [number, number]
+) {
+  // 检查宽高比是否有效，若无效则不进行计算
+  if (!aspectRatio) return;
+
+  // 定义宽度和高度变量，待计算后赋值
+  let width: number, height: number;
+
+  // 判断target类型，以决定如何获取尺寸
+  if (typeof target == "string") {
+    // 若为字符串，视为DOM选择器，获取对应元素
+    const dom = document.querySelector(target);
+    // 未找到元素则不进行后续操作
+    if (!dom) return;
+    // 获取元素的尺寸信息
+    const rect = dom.getBoundingClientRect();
+    width = rect.width;
+    height = rect.height;
+  } else if (Array.isArray(target)) {
+    // 若非字符串，直接从数组中获取宽高
+    width = target[0];
+    height = target[1];
+  } else {
+    // 获取元素的尺寸信息
+    const rect = target.getBoundingClientRect();
+    width = rect.width;
+    height = rect.height;
+  }
+
+  // 计算当前的宽高比
+  const scale = width / height;
+
+  // 根据宽高比对比，确保最终尺寸符合预期的宽高比
+  if (scale > aspectRatio) return [aspectRatio * height, height];
+  if (scale < aspectRatio) return [width, width / aspectRatio];
+  // 宽高比一致，直接返回当前尺寸
+  return [width, height];
+}
+
+/**
  * 异步加载图片，并返回图片对象及其宽高比
  * @param src 图片的URL地址
  * @param timeout 超时时间，单位为毫秒，默认为5000ms

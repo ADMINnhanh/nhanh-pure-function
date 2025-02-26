@@ -917,21 +917,29 @@ export class _KeyedWindowManager {
 }
 
 /**
- * 将给定的数据转换为图片 URL
- * @param data - 支持字符串、ArrayBuffer 或 Uint8Array 类型的图片数据
- * @param mimeType - 图片的 MIME 类型，默认为 'image/png'
- * @returns 图片的 URL 字符串，如果转换失败则返回 null
+ * 将不同格式的数据转换为图像 URL
+ * 此函数支持多种类型的数据输入，包括字符串（Base64/Data URL）、ArrayBuffer、Uint8Array和File，
+ * 并尝试将这些数据转换为指定MIME类型的图像URL
+ *
+ * @param data - 输入数据，可以是字符串（Base64/Data URL）、ArrayBuffer、Uint8Array或File实例
+ * @param mimeType - 期望的图像MIME类型，默认为'image/png'
+ * @returns 成功时返回图像的URL，失败时返回null
  */
-export function _ConvertDataToImageUrl(
-  data: string | ArrayBuffer | Uint8Array,
+export function _Danger_ConvertDataToImageUrl(
+  data: string | ArrayBuffer | Uint8Array | File,
   mimeType: string = "image/png"
-): string | null {
+) {
   try {
     let uint8Array: Uint8Array;
     let resolvedMimeType = mimeType;
 
+    // 处理 File 类型
+    if (data instanceof File) {
+      return URL.createObjectURL(data);
+    }
+
     // 处理字符串类型（Base64/Data URL）
-    if (typeof data === "string") {
+    else if (typeof data === "string") {
       let base64Data = data;
 
       // 匹配 Data URL 格式（支持任意MIME类型）
@@ -962,13 +970,19 @@ export function _ConvertDataToImageUrl(
       for (let i = 0; i < binaryString.length; i++) {
         uint8Array[i] = binaryString.charCodeAt(i);
       }
-    } // 处理ArrayBuffer类型
+    }
+
+    // 处理ArrayBuffer类型
     else if (data instanceof ArrayBuffer) {
       uint8Array = new Uint8Array(data);
-    } // 处理Uint8Array类型
+    }
+
+    // 处理Uint8Array类型
     else if (data instanceof Uint8Array) {
       uint8Array = data;
-    } // 无效数据类型
+    }
+
+    // 无效数据类型
     else {
       throw new Error(
         "不支持的数据类型。应为 Base64 字符串、ArrayBuffer 或 Uint8Array"
