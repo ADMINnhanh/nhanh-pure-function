@@ -849,7 +849,7 @@ export class _KeyedWindowManager {
    */
   static open(
     key: string,
-    url?: string,
+    url?: string | URL,
     target?: WindowTarget,
     windowFeatures?: string
   ) {
@@ -861,27 +861,11 @@ export class _KeyedWindowManager {
       const newWin = window.open(url, target, windowFeatures);
       if (newWin) {
         this.keys.set(key, newWin);
-
-        // 监听窗口关闭事件，以便从Map中移除已关闭的窗口
-        newWin.addEventListener("unload", () => this.keys.delete(key));
-
         return newWin;
       } else {
         console.error("window.open failed: 可能是浏览器阻止了弹出窗口");
         this.keys.delete(key);
       }
-    }
-  }
-
-  /**
-   * 关闭与指定键关联的窗口
-   * @param key 窗口的唯一键
-   */
-  static close(key: string): void {
-    const windowToClose = this.keys.get(key);
-    if (windowToClose && !windowToClose.closed) {
-      windowToClose.close();
-      this.keys.delete(key);
     }
   }
 
@@ -892,7 +876,8 @@ export class _KeyedWindowManager {
    */
   static isOpen(key: string): boolean {
     const window = this.keys.get(key);
-    return !!window && !window.closed;
+    if (window?.closed) this.keys.delete(key);
+    return this.keys.has(key);
   }
 
   /**
@@ -901,18 +886,27 @@ export class _KeyedWindowManager {
    * @returns 返回对应的窗口，如果窗口已关闭则返回undefined
    */
   static getWindow(key: string) {
-    const window = this.keys.get(key);
-    if (window && !window.closed) return window;
+    if (this.isOpen(key)) return this.keys.get(key);
+  }
+
+  /**
+   * 关闭与指定键关联的窗口
+   * @param key 窗口的唯一键
+   */
+  static close(key: string): void {
+    const win = this.keys.get(key);
+    if (win) {
+      win.close();
+      this.keys.delete(key);
+    }
   }
 
   /**
    * 关闭所有打开的窗口并清空Map
    */
   static closeAll(): void {
-    this.keys.forEach((window, key) => {
-      if (!window.closed) window.close();
-      this.keys.delete(key);
-    });
+    this.keys.forEach((window, key) => window.close());
+    this.keys.clear();
   }
 }
 
