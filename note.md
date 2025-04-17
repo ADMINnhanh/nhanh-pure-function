@@ -1,1 +1,3 @@
 _KeyedWindowManager 打开新标签页后新可能需要和新标签页的 _KeyedWindowManager 同步。
+
+_Schedule 返回终止方法

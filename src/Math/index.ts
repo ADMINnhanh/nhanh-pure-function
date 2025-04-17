@@ -55,19 +55,20 @@ export function _IsWithinErrorMargin(
  * 进度
  * @param {(schedule)=>void} callback callback( 进度百分比 )
  * @param {Number} TIME 总时长
+ * @returns {Function} 停止函数
  */
-export function _Schedule(
-  callback: (schedule: number) => void,
-  TIME = 500
-): void {
+export function _Schedule(callback: (schedule: number) => void, TIME = 500) {
   let t: number;
+  let canContinueExecution = true;
   function loop(time: number) {
+    if (!canContinueExecution) return;
     if (!t) t = time;
     let percentage = Math.min((time - t) / TIME, 1);
     callback(percentage);
     if (time - t < TIME) requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
+  return () => (canContinueExecution = false);
 }
 
 /**
@@ -176,4 +177,21 @@ export function _FormatFileSize(size: number) {
     unitIndex++;
   }
   return `${Math.round(size * 100) / 100} ${units[unitIndex]}`;
+}
+
+/** 计算平面直角坐标系中两点的距离 */
+export function _CalculateDistance2D(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+) {
+  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+}
+
+/** 获取两点的中点 */
+export function _GetMidpoint(x1: number, y1: number, x2: number, y2: number) {
+  const midX = (x1 + x2) / 2;
+  const midY = (y1 + y2) / 2;
+  return { x: midX, y: midY };
 }
