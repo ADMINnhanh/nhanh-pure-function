@@ -464,3 +464,35 @@ export function _LoadImage(
     img.crossOrigin = "Anonymous";
   });
 }
+
+/**
+ * 暂停执行指定毫秒数的操作
+ * 此函数通过 busy-wait（忙等待）的方式实现，它会持续执行一些无用的操作以消耗时间
+ * 这种方法虽然简单，但会占用CPU资源，因此不推荐在实际应用中使用
+ *
+ * @param ms 暂停的毫秒数
+ * @returns 实际暂停的毫秒数
+ */
+export function _Sleep(ms: number) {
+  // 记录开始时间
+  const start = Date.now();
+  // 初始化一个用于防优化的变量
+  let dummy = performance.now();
+
+  // 当前时间未达到指定的暂停时间时，继续执行循环
+  while (Date.now() - start < ms) {
+    // 复合型防优化操作
+    // 通过数学运算和条件判断，防止JavaScript引擎优化掉这段无用的循环
+    dummy = Math.sin(dummy) * 1e6;
+    if (dummy > 1e6 || dummy < -1e6) dummy = 0;
+    try {
+      // 进一步的防优化操作
+      // 将dummy的值转换为字符串并试图修改URL的hash值，以防止被优化
+      const str = dummy.toString().substring(0, 8);
+      history.replaceState(null, "", `#${str}`);
+    } catch {}
+  }
+
+  // 返回实际暂停的时间
+  return Date.now() - start;
+}

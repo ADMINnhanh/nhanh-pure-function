@@ -1,6 +1,96 @@
 import { UNIT_LABELS } from "../Constant";
 import { Point } from "./type";
 
+/** 提取固定值 */
+const HALF_PI = Math.PI / 2;
+const PI_OVER_180 = Math.PI / 180;
+const EARTH_RADIUS = 6378137;
+const MAX_LAT = 85.05112878;
+
+/**
+ * 将经纬度转换为平面坐标
+ * @param lng 经度
+ * @param lat 纬度
+ * @returns 平面坐标 [x, y]（米）
+ */
+export function _LngLatToPlane(lng: number, lat: number): [number, number] {
+  const clampedLng = Math.max(Math.min(lng, 180), -180);
+  const clampedLat = Math.max(Math.min(lat, MAX_LAT), -MAX_LAT);
+
+  const x = clampedLng * PI_OVER_180 * EARTH_RADIUS;
+  const phi = clampedLat * PI_OVER_180;
+  const y = Math.log(Math.tan(Math.PI / 4 + phi / 2)) * EARTH_RADIUS;
+  return [x, y];
+}
+
+/**
+ * 将平面坐标转换为经纬度
+ * @param x 平面坐标 X 值（米）
+ * @param y 平面坐标 Y 值（米）
+ * @returns 经纬度 [lng, lat]（度）
+ */
+export function _PlaneToLngLat(x: number, y: number): [number, number] {
+  // 计算经度
+  const lng = x / EARTH_RADIUS / PI_OVER_180;
+
+  // 计算纬度
+  const lat =
+    (2 * Math.atan(Math.exp(y / EARTH_RADIUS)) - HALF_PI) / PI_OVER_180;
+
+  return [lng, lat];
+}
+
+/**
+ * 计算点到线段的距离
+ * @param point 点击位置
+ * @param lineStart 线段起点
+ * @param lineEnd 线段终点
+ * @returns 点到线段的距离
+ */
+export function _PointToLineDistance(
+  point: [number, number],
+  lineStart: [number, number],
+  lineEnd: [number, number]
+): number {
+  const [x0, y0] = point;
+  const [x1, y1] = lineStart;
+  const [x2, y2] = lineEnd;
+
+  const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+  if (l2 === 0) return Math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2);
+
+  let t = ((x0 - x1) * (x2 - x1) + (y0 - y1) * (y2 - y1)) / l2;
+  t = Math.max(0, Math.min(1, t));
+
+  return Math.sqrt(
+    (x0 - (x1 + t * (x2 - x1))) ** 2 + (y0 - (y1 + t * (y2 - y1))) ** 2
+  );
+}
+
+/**
+ * 检查单个二维数组参数是否合法，要求数组元素为有限数字
+ * @param arr - 待检查的数组
+ * @returns 如果参数合法返回 true，否则返回 false
+ */
+export function _IsSingleArrayValid(arr: any): boolean {
+  return (
+    Array.isArray(arr) &&
+    typeof arr[0] === "number" &&
+    typeof arr[1] === "number" &&
+    isFinite(arr[0]) &&
+    isFinite(arr[1])
+  );
+}
+
+/**
+ * 检查数组中的每个元素是否都为合法的二维数组
+ * @param arr - 待检查的数组
+ * @returns 如果所有元素都合法返回 true，否则返回 false
+ */
+export function _AreAllArraysValid(arr: any): boolean {
+  return Array.isArray(arr) && arr.every((v) => _IsSingleArrayValid(v));
+}
+
 /**
  * 转为百分比字符串
  * @param value 分子
@@ -77,7 +167,18 @@ export function _Schedule(callback: (schedule: number) => void, TIME = 500) {
  * @returns {string} - 格式化后的字符串。
  */
 export function _FormatNumber(number: number): string {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  // 将数字转换为字符串
+  const numStr = number.toString();
+  // 按小数点分割字符串
+  const parts = numStr.split(".");
+  // 处理整数部分
+  const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  if (parts.length > 1) {
+    // 如果有小数部分，拼接整数部分和小数部分
+    return integerPart + "." + parts[1];
+  }
+  // 如果没有小数部分，直接返回处理后的整数部分
+  return integerPart;
 }
 
 /**

@@ -829,14 +829,12 @@ export class _KeyedWindowManager {
   // 存储键与对应窗口的Map
   private static keys = new Map<string, Window>();
 
-  /**
-   * 构造函数
-   * @throws 如果尝试实例化该类，则抛出错误，因为应该使用静态方法
-   */
-  constructor() {
-    if (new.target === _KeyedWindowManager) {
-      throw new Error("请直接使用静态方法，而不是实例化此类");
-    }
+  /** 请使用静态方法 */
+  private constructor() {}
+
+  /** 添加已有窗口 */
+  static add(key: string, win: Window) {
+    this.keys.set(key, win);
   }
 
   /**
@@ -998,8 +996,17 @@ export function _Danger_ConvertDataToImageUrl(
   }
 }
 
-/** 时间消耗 */
-export function _TimeConsumption(func: Function, level: [number, string][]) {
+/**
+ * 函数装饰器，用于测量并记录另一个函数的执行时间
+ * @param func 要测量执行时间的函数
+ * @param level 耗时与颜色对应的数组，用于在控制台中着色显示
+ * @param maxHistory 保留的最大历史记录数，默认为30
+ */
+export function _TimeConsumption(
+  func: Function,
+  level: [number, string][],
+  maxHistory = 30
+) {
   // 检查参数类型
   if (typeof func !== "function") {
     throw new Error("The first argument must be a function.");
@@ -1010,8 +1017,7 @@ export function _TimeConsumption(func: Function, level: [number, string][]) {
 
   // 在类中添加属性
   let drawTimes: number[] = [];
-  // 保留最近10次的耗时数据
-  let maxHistory = 100;
+  // 保留最近x次的耗时数据
   /** 平均耗时 */
   let avgTime: number = 0;
 
@@ -1025,6 +1031,7 @@ export function _TimeConsumption(func: Function, level: [number, string][]) {
     return "black"; // 默认颜色
   };
 
+  // 返回一个闭包函数，用于执行原始函数并测量其执行时间
   return function (...args: any[]) {
     // 记录开始时间
     const startTime = performance.now();
