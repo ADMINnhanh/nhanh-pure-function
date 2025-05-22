@@ -304,10 +304,8 @@ export class _LocalDrag {
 /** 进入全屏模式 */
 export function _EnterFullscreen(content?: HTMLElement): Promise<void> {
   const ts_content = content || (document.documentElement as any);
-  if (!content) {
-    return Promise.reject("No DOM");
-  } else if (content.requestFullscreen) {
-    return content.requestFullscreen();
+  if (ts_content.requestFullscreen) {
+    return ts_content.requestFullscreen();
   } else if (ts_content.mozRequestFullScreen) {
     // Firefox
     return ts_content.mozRequestFullScreen();
@@ -340,15 +338,19 @@ export function _ExitFullscreen(): Promise<void> {
 }
 /** 判断是否处于全屏模式 */
 export function _IsFullscreen(content?: HTMLElement) {
-  content = content || document.documentElement;
-
   const ts_document = document as any;
-  const full =
+
+  const fullTarget =
     document.fullscreenElement ||
     ts_document.webkitFullscreenElement ||
     ts_document.mozFullScreenElement ||
     ts_document.msFullscreenElement;
-  return content == full;
+
+  return content
+    ? content == fullTarget
+    : document.documentElement == fullTarget ||
+        (screen.width == window.innerWidth &&
+          screen.height == window.innerHeight);
 }
 /**
  * 返回一个用于切换全屏模式的函数
