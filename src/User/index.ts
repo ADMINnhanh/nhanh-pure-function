@@ -18,7 +18,7 @@ export function _ScrollEndListener(
   let lastScrollLeft = 0;
   return function (payload: Event) {
     const target = payload.target;
-    if (!target || !(target instanceof HTMLElement)) return;
+    if (!target || !(target instanceof Element)) return;
 
     const {
       scrollTop,
@@ -105,7 +105,7 @@ export function _CloseOnOutsideClick(
     const target = event.target;
 
     /** 元素这时可能已经被删除了 */
-    if (!(target instanceof HTMLElement) || !target?.closest("body")) return;
+    if (!(target instanceof Element) || !target.isConnected) return;
 
     const isClickable = querySelector
       .concat(UI)
@@ -302,8 +302,8 @@ export class _LocalDrag {
 }
 
 /** 进入全屏模式 */
-export function _EnterFullscreen(content: HTMLElement): Promise<void> {
-  const ts_content = content as any;
+export function _EnterFullscreen(content?: HTMLElement): Promise<void> {
+  const ts_content = content || (document.documentElement as any);
   if (!content) {
     return Promise.reject("No DOM");
   } else if (content.requestFullscreen) {
@@ -339,23 +339,25 @@ export function _ExitFullscreen(): Promise<void> {
   return Promise.reject("No ExitFullscreen API");
 }
 /** 判断是否处于全屏模式 */
-export function _IsFullscreen(): HTMLElement | undefined {
+export function _IsFullscreen(content?: HTMLElement) {
+  content = content || document.documentElement;
+
   const ts_document = document as any;
-  return (
+  const full =
     document.fullscreenElement ||
     ts_document.webkitFullscreenElement ||
     ts_document.mozFullScreenElement ||
-    ts_document.msFullscreenElement
-  );
+    ts_document.msFullscreenElement;
+  return content == full;
 }
 /**
  * 返回一个用于切换全屏模式的函数
  * @param {HTMLElement} content - 需要进入全屏的元素
  * 该函数通过检查不同浏览器的特定方法来实现全屏切换
  */
-export function _Fullscreen(content: HTMLElement) {
+export function _Fullscreen(content?: HTMLElement) {
   return function () {
-    if (_IsFullscreen()) _ExitFullscreen();
+    if (_IsFullscreen(content)) _ExitFullscreen();
     else _EnterFullscreen(content);
   };
 }
