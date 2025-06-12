@@ -280,6 +280,36 @@ export function _FormatFileSize(size: number) {
   return `${Math.round(size * 100) / 100} ${units[unitIndex]}`;
 }
 
+/**
+ * 计算圆弧的起点和终点坐标
+ * @param x 圆心X坐标
+ * @param y 圆心Y坐标
+ * @param radius 圆弧半径
+ * @param startAngle 起始角度（弧度制，0表示X轴正方向）
+ * @param endAngle 结束角度（弧度制）
+ * @returns [起点坐标[x,y], 终点坐标[x,y]]
+ */
+export function _GetArcPoints(
+  x: number,
+  y: number,
+  radius: number,
+  startAngle: number,
+  endAngle: number
+): [[number, number], [number, number]] {
+  // 计算起点坐标
+  const startX = x + radius * Math.cos(startAngle);
+  const startY = y + radius * Math.sin(startAngle);
+
+  // 计算终点坐标
+  const endX = x + radius * Math.cos(endAngle);
+  const endY = y + radius * Math.sin(endAngle);
+
+  return [
+    [startX, startY],
+    [endX, endY],
+  ];
+}
+
 /** 计算平面直角坐标系中两点的距离 */
 export function _CalculateDistance2D(
   x1: number,
