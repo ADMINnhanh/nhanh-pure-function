@@ -72,14 +72,10 @@ export function _PointToLineDistance(
  * @param arr - 待检查的数组
  * @returns 如果参数合法返回 true，否则返回 false
  */
-export function _IsSingleArrayValid(arr: any): boolean {
-  return (
-    Array.isArray(arr) &&
-    typeof arr[0] === "number" &&
-    typeof arr[1] === "number" &&
-    isFinite(arr[0]) &&
-    isFinite(arr[1])
-  );
+export function _IsSingleArrayValid(arr: any, minLength = 2): boolean {
+  if (Array.isArray(arr) && arr.length >= minLength)
+    return arr.every((v) => typeof v === "number" && isFinite(v));
+  return false;
 }
 
 /**
