@@ -68,23 +68,39 @@ export function _PointToLineDistance(
 }
 
 /**
- * 检查单个二维数组参数是否合法，要求数组元素为有限数字
+ * 检查单个一维数组参数是否合法（元素为有限数字）
  * @param arr - 待检查的数组
- * @returns 如果参数合法返回 true，否则返回 false
+ * @param minLength - 数组最小长度 (默认2)
+ * @returns 参数合法返回 true，否则返回 false
  */
-export function _IsSingleArrayValid(arr: any, minLength = 2): boolean {
-  if (Array.isArray(arr) && arr.length >= minLength)
-    return arr.every((v) => typeof v === "number" && isFinite(v));
-  return false;
+export function _IsValidNumberArray(
+  arr: unknown,
+  minLength: number = 2
+): boolean {
+  return (
+    Array.isArray(arr) &&
+    arr.length >= minLength &&
+    arr.every((item) => typeof item === "number" && Number.isFinite(item))
+  );
 }
 
 /**
- * 检查数组中的每个元素是否都为合法的二维数组
- * @param arr - 待检查的数组
- * @returns 如果所有元素都合法返回 true，否则返回 false
+ * 检查二维数组结构是否合法（每个元素都是有效的一维数组）
+ * @param arr - 待检查的二维数组
+ * @param minLength - 外层数组最小长度 (默认1)
+ * @param innerMinLength - 内层数组最小长度 (默认2)
+ * @returns 所有元素都合法返回 true，否则返回 false
  */
-export function _AreAllArraysValid(arr: any): boolean {
-  return Array.isArray(arr) && arr.every((v) => _IsSingleArrayValid(v));
+export function _IsValid2DArray(
+  arr: unknown,
+  minLength: number = 1,
+  innerMinLength: number = 2
+): boolean {
+  return (
+    Array.isArray(arr) &&
+    arr.length >= minLength &&
+    arr.every((innerArr) => _IsValidNumberArray(innerArr, innerMinLength))
+  );
 }
 
 /**
