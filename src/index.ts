@@ -1,11 +1,45 @@
+// import { readdirSync, statSync } from "fs";
+// import { join } from "path";
+// import { fileURLToPath } from "url"; // 仅 ESM 需要
+
+// // 确定当前执行文件的目录（兼容 CommonJS 和 ESM）
+// const currentDir =
+//   typeof __dirname !== "undefined"
+//     ? __dirname // CommonJS
+//     : fileURLToPath(new URL(".", import.meta.url)); // ESM
+
+// /**
+//  * 获取执行文件所在目录下的所有文件夹名称
+//  * @returns 文件夹名称数组
+//  */
+// export function getDirectories(): string[] {
+//   try {
+//     return readdirSync(currentDir).filter((item) =>
+//       statSync(join(currentDir, item)).isDirectory()
+//     );
+//   } catch (error) {
+//     console.error(`读取目录失败: ${error}`);
+//     return [];
+//   }
+// }
+
+// // 使用示例
+// const folders = getDirectories()
+//   .map((name) => `export * from "./${name}";`)
+//   .join("\n");
+// console.log("当前目录下的文件夹:\n", folders);
+
 import "./index.less";
 
-export * from "./Utility";
-export * from "./Element";
-export * from "./Math";
-export * from "./Valid";
 export * from "./Animate";
+export * from "./Blob";
+export * from "./Browser";
+export * from "./Element";
+export * from "./File";
 export * from "./Format";
+export * from "./Math";
+export * from "./Utility";
+export * from "./Valid";
 
 type TipHandler = ((...args: any[]) => void) | undefined;
 type TipType = "info" | "success" | "warning" | "error";
