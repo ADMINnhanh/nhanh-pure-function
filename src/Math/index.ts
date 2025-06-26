@@ -129,14 +129,14 @@ export function _Math_GetMidpoint(
  * @param direction 方向向量 [dx, dy]
  * @param canvasWidth 画布宽度
  * @param canvasHeight 画布高度
- * @returns 与边界的交点坐标，若无有效交点返回 null
+ * @returns 与边界的交点坐标
  */
 export function _Math_GetBoundaryIntersection(
   startPoint: [number, number],
   direction: [number, number],
   canvasWidth: number,
   canvasHeight: number
-): [number, number] | null {
+): [number, number] {
   const [startX, startY] = startPoint;
   const [dirX, dirY] = direction;
   let minT = Infinity; // 存储到达边界的最小正比例系数
@@ -167,6 +167,6 @@ export function _Math_GetBoundaryIntersection(
 
   // 当向量指向边界外时返回 null
   return minT === Infinity
-    ? null
+    ? startPoint
     : [startX + dirX * minT, startY + dirY * minT];
 }
