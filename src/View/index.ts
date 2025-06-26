@@ -1,4 +1,4 @@
-import { _IsObject, _NotNull, _Debounce } from "../Utility";
+import { _Utility_Debounce } from "../Utility";
 import {
   DragOption,
   EventFunctionMap,
@@ -10,10 +10,10 @@ import {
  * 滚动结束监听器
  * @param {(trigger: "vertical" | "horizontal") => void} callback
  */
-export function _ScrollEndListener(
+export function _View_ScrollEndListener(
   callback: (trigger: "vertical" | "horizontal") => void
 ) {
-  const debouncedCallback = _Debounce(callback, 100);
+  const debouncedCallback = _Utility_Debounce(callback, 100);
   let lastScrollTop = 0;
   let lastScrollLeft = 0;
   return function (payload: Event) {
@@ -61,7 +61,7 @@ export function _ScrollEndListener(
  * @param  options.uiLibrary 项目使用的 ui库 , 用于排除  ui库 创建的元素 , 避免点击 ui库 创建的元素时意外的执行 callback
  * @param  options.isClickAllowed 是否允许该点击 ( 如果不确定可以返回 undefined )
  */
-export function _CloseOnOutsideClick(
+export function _View_CloseOnOutsideClick(
   querySelector: string[],
   callback: Function,
   options?: {
@@ -119,7 +119,7 @@ export function _CloseOnOutsideClick(
 }
 
 /** 拖拽dom */
-export class _Drag {
+export class _View_Drag {
   #dom: DragOption["dragDom"] = undefined;
   #isAllowed = false;
   #eventFunction: EventFunctionMap = {};
@@ -199,7 +199,7 @@ export class _Drag {
 }
 
 /** 局部拖拽 计算位置距离/百分比 */
-export class _LocalDrag {
+export class _View_LocalDrag {
   #parentDom: DragOption["dragDom"] = undefined;
   #isAllowed = false;
   #eventFunction: EventFunctionMap = {};
@@ -302,7 +302,7 @@ export class _LocalDrag {
 }
 
 /** 进入全屏模式 */
-export function _EnterFullscreen(content?: HTMLElement): Promise<void> {
+export function _View_EnterFullscreen(content?: HTMLElement): Promise<void> {
   const ts_content = content || (document.documentElement as any);
   if (ts_content.requestFullscreen) {
     return ts_content.requestFullscreen();
@@ -319,7 +319,7 @@ export function _EnterFullscreen(content?: HTMLElement): Promise<void> {
   return Promise.reject("No Fullscreen API");
 }
 /** 退出全屏模式 */
-export function _ExitFullscreen(): Promise<void> {
+export function _View_ExitFullscreen(): Promise<void> {
   const ts_document = document as any;
 
   if (document.exitFullscreen) {
@@ -337,7 +337,7 @@ export function _ExitFullscreen(): Promise<void> {
   return Promise.reject("No ExitFullscreen API");
 }
 /** 判断是否处于全屏模式 */
-export function _IsFullscreen(content?: HTMLElement) {
+export function _View_IsFullscreen(content?: HTMLElement) {
   const ts_document = document as any;
 
   const fullTarget =
@@ -357,10 +357,10 @@ export function _IsFullscreen(content?: HTMLElement) {
  * @param {HTMLElement} content - 需要进入全屏的元素
  * 该函数通过检查不同浏览器的特定方法来实现全屏切换
  */
-export function _Fullscreen(content?: HTMLElement) {
+export function _View_Fullscreen(content?: HTMLElement) {
   return function () {
-    if (_IsFullscreen(content)) _ExitFullscreen();
-    else _EnterFullscreen(content);
+    if (_View_IsFullscreen(content)) _View_ExitFullscreen();
+    else _View_EnterFullscreen(content);
   };
 }
 
@@ -369,7 +369,10 @@ export function _Fullscreen(content?: HTMLElement) {
  * @param {string} width
  * @returns 对应的单位为px的宽
  */
-export function _GetOtherSizeInPixels(width: string, target?: HTMLElement) {
+export function _View_GetOtherSizeInPixels(
+  width: string,
+  target?: HTMLElement
+) {
   if (typeof width == "number") return width;
   if (/px/.test(width)) return Number(width.replace(/px/, "")) || 0;
   const dom = document.createElement("div");
@@ -389,7 +392,7 @@ export function _GetOtherSizeInPixels(width: string, target?: HTMLElement) {
  * @param target 目标元素或尺寸，可以是DOM元素、选择器字符串或尺寸数组
  * @returns 返回计算后的画布尺寸，格式为[宽度, 高度]
  */
-export function _CalculateCanvasSize(
+export function _View_CalculateCanvasSize(
   aspectRatio: number,
   target: Element | string | [number, number]
 ) {
@@ -436,7 +439,7 @@ export function _CalculateCanvasSize(
  * @param timeout 超时时间，单位为毫秒，默认为5000ms
  * @returns 一个Promise对象，包含加载的图片对象及其宽高比
  */
-export function _LoadImage(
+export function _View_LoadImage(
   src: string,
   timeout: number = 5000
 ): Promise<[HTMLImageElement, number]> {
@@ -467,36 +470,4 @@ export function _LoadImage(
     // 可选：增加跨域支持
     img.crossOrigin = "Anonymous";
   });
-}
-
-/**
- * 暂停执行指定毫秒数的操作
- * 此函数通过 busy-wait（忙等待）的方式实现，它会持续执行一些无用的操作以消耗时间
- * 这种方法虽然简单，但会占用CPU资源，因此不推荐在实际应用中使用
- *
- * @param ms 暂停的毫秒数
- * @returns 实际暂停的毫秒数
- */
-export function _Sleep(ms: number) {
-  // 记录开始时间
-  const start = Date.now();
-  // 初始化一个用于防优化的变量
-  let dummy = performance.now();
-
-  // 当前时间未达到指定的暂停时间时，继续执行循环
-  while (Date.now() - start < ms) {
-    // 复合型防优化操作
-    // 通过数学运算和条件判断，防止JavaScript引擎优化掉这段无用的循环
-    dummy = Math.sin(dummy) * 1e6;
-    if (dummy > 1e6 || dummy < -1e6) dummy = 0;
-    try {
-      // 进一步的防优化操作
-      // 将dummy的值转换为字符串并试图修改URL的hash值，以防止被优化
-      const str = dummy.toString().substring(0, 8);
-      history.replaceState(null, "", `#${str}`);
-    } catch {}
-  }
-
-  // 返回实际暂停的时间
-  return Date.now() - start;
 }

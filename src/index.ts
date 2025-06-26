@@ -1,8 +1,11 @@
 import "./index.less";
 
 export * from "./Utility";
-export * from "./User";
+export * from "./View";
 export * from "./Math";
+export * from "./Valid";
+export * from "./Animate";
+export * from "./Format";
 
 type TipHandler = ((...args: any[]) => void) | undefined;
 type TipType = "info" | "success" | "warning" | "error";

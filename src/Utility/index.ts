@@ -1,36 +1,15 @@
-import {
-  EXTENSION_TO_MIME,
-  FILE_EXTENSIONS,
-  FileType,
-  WindowTarget,
-} from "../Constant";
-
-/**
- * 非null | undefined判断
- * @param value any
- * @returns boolean
- */
-export function _NotNull(value: any) {
-  return value !== null && value !== undefined;
-}
-
-/**
- * 是正常对象吗
- * @param {} value
- * @returns boolean
- */
-export function _IsObject(value: any) {
-  return !(value === null || typeof value !== "object" || Array.isArray(value));
-}
+import { WindowTarget } from "../Constant";
+import { _Format_HrefName } from "../Format";
+import { _Valid_DataType } from "../Valid";
 
 /**
  * 寻找空闲时机执行传入方法
  * @param callback  需执行的方法
  */
-export function _ExecuteWhenIdle(callback: Function) {
+export function _Utility_ExecuteWhenIdle(callback: Function) {
   if (typeof callback !== "function")
     return console.error("非函数：", callback);
-  const loop = function (deadline: IdleDeadline) {
+  const loop = function _Utility(deadline: IdleDeadline) {
     if (deadline.didTimeout || deadline.timeRemaining() <= 0)
       requestIdleCallback(loop);
     else callback();
@@ -44,7 +23,7 @@ export function _ExecuteWhenIdle(callback: Function) {
  * @param timeoutMillis 超时毫秒数
  * @returns Promise<unknown>
  */
-export function _WaitForCondition(
+export function _Utility_WaitForCondition(
   conditionChecker: () => boolean,
   timeoutMillis: number
 ): Promise<"完成" | "超时"> {
@@ -67,7 +46,7 @@ export function _WaitForCondition(
  * @param delimiter 分隔符
  * @returns 裁减后的字符串
  */
-export function _ExcludeSubstring(
+export function _Utility_ExcludeSubstring(
   inputString: string,
   substringToDelete: string,
   delimiter = ","
@@ -76,18 +55,9 @@ export function _ExcludeSubstring(
     `(^|${delimiter})${substringToDelete}(${delimiter}|$)`,
     "g"
   );
-  return inputString.replace(regex, function ($0, $1, $2) {
+  return inputString.replace(regex, function _Utility($0, $1, $2) {
     return $1 === $2 ? delimiter : "";
   });
-}
-
-/**
- * 首字母大写
- * @param str
- * @returns string
- */
-export function _CapitalizeFirstLetter(string: string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 /**
@@ -96,7 +66,7 @@ export function _CapitalizeFirstLetter(string: string) {
  * @param {Object | Array} B
  * @returns (A & B) | A | B | undefined
  */
-export function _MergeObjects<T, T1>(
+export function _Utility_MergeObjects<T, T1>(
   A: T,
   B: T1,
   visitedObjects: [any, any][] = [],
@@ -108,8 +78,8 @@ export function _MergeObjects<T, T1>(
     return undefined;
   }
 
-  const TA = _DataType(A);
-  const TB = _DataType(B);
+  const TA = _Valid_DataType(A);
+  const TB = _Valid_DataType(B);
 
   if (TA != TB) return B;
 
@@ -123,7 +93,12 @@ export function _MergeObjects<T, T1>(
           const BC = B[key];
           /** @ts-ignore */
           const AC = A[key];
-          const fianlValue = _MergeObjects(AC, BC, visitedObjects, outTime);
+          const fianlValue = _Utility_MergeObjects(
+            AC,
+            BC,
+            visitedObjects,
+            outTime
+          );
           /** @ts-ignore */
           A[key] = fianlValue;
         }
@@ -135,7 +110,12 @@ export function _MergeObjects<T, T1>(
         const BC = item;
         /** @ts-ignore */
         const AC = A[index];
-        const fianlValue = _MergeObjects(AC, BC, visitedObjects, outTime);
+        const fianlValue = _Utility_MergeObjects(
+          AC,
+          BC,
+          visitedObjects,
+          outTime
+        );
         /** @ts-ignore */
         A[index] = fianlValue;
       });
@@ -145,45 +125,11 @@ export function _MergeObjects<T, T1>(
 }
 
 /**
- * 时间戳转换字符串
- * @param {Number | Date} time 时间戳或Date对象
- * @param {String} template 完整模板 -->  YYYY MM DD hh mm ss ms
- * @param {Boolean} pad 补0
- */
-export function _TimeTransition(
-  time: number | Date,
-  template = "YYYY-MM-DD hh:mm:ss",
-  pad = true
-) {
-  const date = new Date(time);
-
-  if (isNaN(date.getTime())) {
-    console.error("Invalid date");
-    return "";
-  }
-
-  const dictionary = {
-    YYYY: (date: Date) => date.getFullYear(),
-    MM: (date: Date) => date.getMonth() + 1, // Adjust for 0-based month
-    DD: (date: Date) => date.getDate(),
-    hh: (date: Date) => date.getHours(),
-    mm: (date: Date) => date.getMinutes(),
-    ss: (date: Date) => date.getSeconds(),
-    ms: (date: Date) => date.getMilliseconds(),
-  };
-
-  return template.replace(/YYYY|MM|DD|hh|mm|ss|ms/g, (match) => {
-    const value = dictionary[match as "ss"](date);
-    return pad ? String(value).padStart(2, "0") : String(value);
-  });
-}
-
-/**
  * 读取文件
  * @param src 文件地址
  * @returns 文件的字符串内容
  */
-export function _ReadFile(src: string): Promise<string> {
+export function _Utility_ReadFile(src: string): Promise<string> {
   return new Promise((resolve, reject) => {
     fetch(src)
       .then((response) => resolve(response.text()))
@@ -195,43 +141,14 @@ export function _ReadFile(src: string): Promise<string> {
 }
 
 /**
- * 从给定的href中提取名称部分
- * 该函数旨在处理URL字符串，并返回URL路径的最后一部分，去除查询参数
- *
- * @param {string} href - 待处理的URL字符串
- * @param {string} [defaultName="file"] - 默认的文件名，当无法提取时使用
- * @returns {string} URL路径的最后一部分，不包括查询参数
- */
-export function _GetHrefName(href: string, defaultName = "file") {
-  // 简单检查空值和其他假值
-  if (!href) return defaultName;
-
-  // 将 href 转换为字符串以防止其他类型输入
-  href = String(href).trim();
-
-  // 如果 href 是空字符串，直接返回空字符串
-  if (href === "") return defaultName;
-
-  // 分割路径部分并获取最后一部分
-  const pathParts = href.split("/");
-  const lastPart = pathParts[pathParts.length - 1];
-
-  // 分割查询参数并获取基础名称
-  const name = lastPart.split("?")[0];
-
-  // 返回处理后的名称部分
-  return name;
-}
-
-/**
  * 下载文件
  * @param {string} href - 文件路径
  * @param {string} [fileName] - 导出文件名
  */
-export function _DownloadFile(href: string, fileName?: string) {
+export function _Utility_DownloadFile(href: string, fileName?: string) {
   return new Promise((resolve, reject) => {
     try {
-      fileName = fileName || _GetHrefName(href, "downloaded_file");
+      fileName = fileName || _Format_HrefName(href, "downloaded_file");
       fetch(href)
         .then((response) => {
           if (!response.ok) reject(`文件下载失败，状态码: ${response.status}`);
@@ -260,7 +177,7 @@ export function _DownloadFile(href: string, fileName?: string) {
  * @param {(fps , frameTime)=>void} callback callback( 帧率 , 每帧时间 )
  * @param {Number} referenceNode 参考节点数量
  */
-export function _GetFrameRate(
+export function _Utility_GetFrameRate(
   callback: (fps: number, frameTime: number) => void,
   referenceNode = 10
 ) {
@@ -284,24 +201,12 @@ export function _GetFrameRate(
 }
 
 /**
- * 驼峰命名
- * @param {字符串} str
- * @param {是否删除分割字符} isRemoveDelimiter
- * @returns 'wq1wqw-qw2qw' -> 'wq1Wqw-Qw2Qw' / 'wqWqwQwQw'
- */
-export function _ConvertToCamelCase(str: string, isRemoveDelimiter?: boolean) {
-  str = str.replace(/([^a-zA-Z][a-z])/g, (match) => match.toUpperCase());
-  if (isRemoveDelimiter) return str.replace(/[^a-zA-Z]+/g, "");
-  return str;
-}
-
-/**
  * 创建文件并下载
  * @param {BlobPart[]} content 文件内容
  * @param {string} fileName 文件名称
  * @param {BlobPropertyBag} options Blob 配置
  */
-export function _CreateAndDownloadFile(
+export function _Utility_CreateAndDownloadFile(
   content: BlobPart[],
   fileName: string,
   options?: BlobPropertyBag
@@ -332,14 +237,17 @@ export function _CreateAndDownloadFile(
  * @param {string} prefix - 可选参数，要添加到UUID前面的前缀
  * @returns {string} 一个带有可选前缀的UUID字符串
  */
-export function _GenerateUUID(prefix = "") {
+export function _Utility_GenerateUUID(prefix = "") {
   return (
     prefix +
-    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-      const r = (Math.random() * 16) | 0; // 随机生成一个0到15的数
-      const v = c === "x" ? r : (r & 0x3) | 0x8; // 对于'y'位, v = (r & 0x3 | 0x8) 确保变体正确
-      return v.toString(16); // 将数字转换为16进制
-    })
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function _Utility(c) {
+        const r = (Math.random() * 16) | 0; // 随机生成一个0到15的数
+        const v = c === "x" ? r : (r & 0x3) | 0x8; // 对于'y'位, v = (r & 0x3 | 0x8) 确保变体正确
+        return v.toString(16); // 将数字转换为16进制
+      }
+    )
   );
 }
 
@@ -349,12 +257,12 @@ export function _GenerateUUID(prefix = "") {
  * @param {number} delay
  * @returns {Function}
  */
-export function _Debounce<T extends (...args: any[]) => void>(
+export function _Utility_Debounce<T extends (...args: any[]) => void>(
   fn: T,
   delay: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout | undefined;
-  return function (...args) {
+  return function _Utility(...args) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       fn(...args);
@@ -369,41 +277,30 @@ export function _Debounce<T extends (...args: any[]) => void>(
  * @param {number} delay
  * @returns {Function}
  */
-export function _Throttle<T extends (...args: any[]) => void>(
+export function _Utility_Throttle<T extends (...args: any[]) => void>(
   fn: T,
   delay: number
 ): (...args: Parameters<T>) => void {
   let lastCallTime = -Infinity;
 
-  return function (...args) {
+  return function _Utility(...args) {
     const now = performance.now();
     if (now - lastCallTime > delay) {
       lastCallTime = now;
       try {
         fn(...args);
       } catch (error) {
-        console.error("Throttled function execution failed:", error);
+        console.error("Throttled function _Utilityexecution failed:", error);
       }
     }
   };
 }
 
 /**
- * 数据类型
- * @param {any} value
- * @returns string
- */
-export function _DataType(value: any) {
-  if (Array.isArray(value)) return "array";
-  if (value === null) return "null";
-  return typeof value;
-}
-
-/**
  * 复制到剪贴板
  * @param {string} text
  */
-export function _CopyToClipboard(text: string) {
+export function _Utility_CopyToClipboard(text: string) {
   const handleSuccess = () => Promise.resolve();
   const handleError = (error: string) => {
     console.error(error);
@@ -479,7 +376,7 @@ export function _CopyToClipboard(text: string) {
  * @param {string} path - 属性路径，使用英文句点分隔
  * @returns {any} 路径的最后一个属性对应的值或undefined
  */
-export function _InitTargetByPath(model: any, path: string): any {
+export function _Utility_InitTargetByPath(model: any, path: string): any {
   const arr = path.split(".");
   return arr.reduce((prev, curr, index) => {
     if (!(curr in prev)) {
@@ -497,7 +394,7 @@ export function _InitTargetByPath(model: any, path: string): any {
  * @param {string} path - 用点分隔的路径字符串，表示要访问的对象属性路径
  * @returns {Object|undefined} - 返回目标对象，如果路径不存在则返回undefined
  */
-export function _GetTargetByPath(model: any, path: string): any {
+export function _Utility_GetTargetByPath(model: any, path: string): any {
   const arr = path.split(".");
   return arr.reduce((prev, curr, index) => {
     if (prev.hasOwnProperty(curr)) return prev[curr];
@@ -515,262 +412,16 @@ export function _GetTargetByPath(model: any, path: string): any {
  * @param {*} value - 要设置的新值
  * @returns {*} - 返回更新后的模型对象中的值
  */
-export function _UpdateTargetByPath(model: any, path: string, value: any): any {
+export function _Utility_UpdateTargetByPath(
+  model: any,
+  path: string,
+  value: any
+): any {
   const arr = path.split(".");
   return arr.reduce((prev, curr, index) => {
     if (index === arr.length - 1) prev[curr] = value;
     return prev[curr];
   }, model);
-}
-
-/**
- * 使用 XMLHttpRequest 检查指定 URL 的连接状态
- *
- * 此函数通过发送一个 HEAD 请求来检查给定 URL 是否可访问 HEAD 请求仅请求文档头部信息，
- * 而不是整个页面，因此比 GET 或 POST 请求更快此方法常用于检查 URL 是否有效，以及服务器的响应时间等
- *
- * @param {string} url - 需要检查连接的 URL 地址
- * @returns {Promise} - 返回一个 Promise 对象，该对象在连接成功时解析，在连接失败时拒绝
- */
-export function _CheckConnectionWithXHR(url: string) {
-  return new Promise((resolve, reject) => {
-    // 前置校验：确保 URL 合法
-    if (typeof url !== "string" || url.trim() === "" || !url.includes("://")) {
-      reject(new Error("Invalid URL: Must be a non-empty string"));
-      return;
-    }
-
-    // 显式处理浏览器兼容性错误（如无效协议或非法字符）
-    try {
-      const xhr = new XMLHttpRequest();
-      xhr.open("HEAD", url, true);
-    } catch (error) {
-      reject(new Error(`Invalid URL format: ${(error as Error).message}`));
-      return;
-    }
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("HEAD", url, true);
-
-    // 统一错误处理逻辑
-    const handleError = (event: ProgressEvent<EventTarget>) => {
-      reject(new Error(`Request failed: ${event.type}`));
-    };
-
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        // 兼容性处理：status=0 可能是跨域或网络错误
-        if (xhr.status === 0) {
-          reject(new Error("Network error or CORS blocked"));
-        } else if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(true);
-        } else {
-          reject(new Error(`HTTP Error: ${xhr.status}`));
-        }
-      }
-    };
-
-    // 绑定所有可能的错误事件
-    xhr.onerror = handleError; // 网络层错误（如 DNS 解析失败）
-    xhr.onabort = handleError; // 请求被中止
-    xhr.ontimeout = handleError; // 超时
-
-    try {
-      xhr.send();
-    } catch (error) {
-      reject(new Error(`Request send failed: ${(error as Error).message}`));
-    }
-  });
-}
-
-/**
- * 判断给定URL是否指向一个安全上下文
- *
- * 安全上下文是指通过一系列安全协议访问的资源，这些协议提供了数据的加密传输和身份验证
- * 本函数通过检查URL的协议前缀来判断是否属于安全上下文
- *
- * @param {string} url - 待检查的URL字符串
- * @returns {boolean} - 如果URL指向安全上下文，则返回true；否则返回false
- */
-export function _IsSecureContext(url: string) {
-  // 定义一个包含安全协议前缀的数组
-  // 这里列出的协议代表了数据在传输过程中是加密的，从而保护了数据的机密性和完整性
-  const secureProtocols = [
-    "https:", // HTTPS协议，用于安全地浏览网页
-    "wss:", // WebSocket Secure协议，用于安全的WebSocket通信
-    "ftps:", // FTP Secure协议，用于安全的文件传输
-    "sftp:", // SSH File Transfer Protocol，通过SSH安全地传输文件
-    "smpts:", // Secure SMTP协议，用于安全地发送邮件
-    "smtp+tls:", // SMTP协议结合STARTTLS扩展，用于升级到安全连接
-    "imap+tls:", // IMAP协议结合STARTTLS扩展，用于安全地访问邮件
-    "pop3+tls:", // POP3协议结合STARTTLS扩展，用于安全地接收邮件
-    "rdp:", // Remote Desktop Protocol，用于安全的远程桌面连接
-    "vpn:", // VPN协议，用于创建安全的网络连接
-  ];
-
-  // 遍历安全协议数组，检查给定URL是否以任一安全协议前缀开始
-  // 使用startsWith方法来判断URL是否使用了安全协议
-  // 如果找到匹配的安全协议前缀，则返回true，表示URL指向安全上下文；否则返回false
-  return secureProtocols.some((protocol) => url.startsWith(protocol));
-}
-
-/**
- * 文件类型检查器类
- * 用于检查文件URL的类型
- */
-export class _FileTypeChecker {
-  // 缓存文件扩展名的条目，以提高性能
-  private static cachedEntries = Object.entries(FILE_EXTENSIONS) as [
-    FileType,
-    string[]
-  ][];
-
-  constructor() {
-    if (new.target === _FileTypeChecker) {
-      throw new Error("请直接使用静态方法，而不是实例化此类");
-    }
-  }
-
-  /**
-   * 检查给定URL的文件类型
-   * @param {string} url - 文件的URL
-   * @param {string} [type] - 可选参数，指定要检查的文件类型
-   * @returns {string} - 如果URL与指定类型或任何已知类型匹配，则返回文件类型，否则返回"unknown"
-   */
-  static check(url: string): FileType | "unknown";
-  static check(url: string, type: FileType): boolean;
-  static check(url: string, type?: FileType) {
-    // 确保提供的URL是字符串且非空
-    if (!url || typeof url !== "string") {
-      console.error("Invalid URL provided");
-      return type ? false : "unknown";
-    }
-
-    // 将URL转换为小写，以确保文件扩展名匹配不区分大小写
-    const lowerCaseUrl = _GetHrefName(url).toLowerCase();
-
-    // 如果指定了文件类型，则检查URL是否具有该类型的任何文件扩展名
-    if (type) {
-      // 确保指定的文件类型是已知的
-      if (!FILE_EXTENSIONS.hasOwnProperty(type)) {
-        console.error(`Unknown file type: ${type}`);
-        return "unknown";
-      }
-      const extensions = FILE_EXTENSIONS[type];
-      return _FileTypeChecker._checkExtension(lowerCaseUrl, extensions);
-    }
-
-    // 如果未指定文件类型，则检测URL属于哪种文件类型
-    return _FileTypeChecker._detectFileType(lowerCaseUrl);
-  }
-
-  /**
-   * 静态方法，用于解析地址信息
-   * 该方法接受一个URL字符串，将其解析为一个包含地址详情的对象数组
-   * 主要用于批量处理以逗号分隔的URL列表，为每个URL生成相应的名称和类型
-   *
-   * @param {string} url - 以逗号分隔的URL字符串，每个URL代表一个资源的位置
-   * @returns {Array} - 包含每个URL及其相关信息（名称和类型）的对象数组
-   */
-  static parseAddresses(url: string) {
-    // 确保提供的URL是字符串且非空
-    if (!url || typeof url !== "string") {
-      console.error("Invalid URL provided");
-      return [];
-    }
-
-    // 分割URL字符串并映射每个URL到包含其详细信息的对象
-    return url.split(",").map((url) => {
-      // 从URL中提取名称
-      const name = _GetHrefName(url);
-      // 检查URL的类型
-      const type = this.check(url);
-      // 返回包含URL、名称和类型的对象
-      return { url, name, type };
-    });
-  }
-
-  /**
-   * 检查 MIME 类型是否与指定的模式匹配
-   * @param {string} type - 要检查的 MIME 类型（如 "image/png"）
-   * @param {string} [accept] - 可接受的 MIME 类型模式（如 "image/*, text/plain"）
-   * @returns {boolean} - 如果类型匹配，则返回 true，否则返回 false
-   */
-  static matchesMimeType(type: string, accept?: string) {
-    /** 如果 accept 为空，则默认为 true */
-    if (!accept) return true;
-    if (typeof type !== "string" || typeof accept !== "string") return false;
-
-    // 标准化类型和接受模式
-    const normalizedType = _FileTypeChecker._normalizeType(type);
-    const mimePatterns = accept
-      .split(",")
-      .map((pattern) => _FileTypeChecker._normalizeType(pattern.trim()));
-
-    // 拆分主/子类型
-    const [typeMain, typeSub = "*"] = normalizedType.split("/");
-
-    return mimePatterns.some((pattern) => {
-      const [patternMain, patternSub = "*"] = pattern.split("/");
-
-      // 主类型匹配逻辑
-      const mainMatch =
-        patternMain === "*" || typeMain === "*" || patternMain === typeMain;
-
-      // 子类型匹配逻辑
-      const subMatch =
-        patternSub === "*" || typeSub === "*" || patternSub === typeSub;
-
-      return mainMatch && subMatch;
-    });
-  }
-
-  /**
-   * 类型标准化函数
-   * 该函数旨在将文件类型或MIME类型字符串转换为标准格式
-   * 主要处理三种情况：带扩展名的字符串、简写格式的类型以及已标准格式的类型
-   *
-   * @param {string} type - 文件类型或MIME类型字符串
-   * @returns {string} 标准化的MIME类型字符串，如果无法识别则返回原始输入
-   */
-  static _normalizeType(type: string) {
-    // 处理扩展名（如 .mp3）
-    if (type.startsWith(".") && !type.includes("/")) {
-      return EXTENSION_TO_MIME[type.toLowerCase() as ".mp3"] || type;
-    }
-
-    // 处理简写格式（如 "image" 转换为 "image/*"）
-    if (!type.includes("/")) {
-      return `${type}/*`;
-    }
-
-    // 返回原始输入，因为它已经是标准格式
-    return type;
-  }
-
-  /**
-   * 检查URL是否具有任何指定的文件扩展名
-   * @param {string} url - 文件的URL
-   * @param {string[]} validExtensions - 有效文件扩展名的数组
-   * @returns {boolean} - 如果URL具有任何指定的文件扩展名，则返回true，否则返回false
-   */
-  static _checkExtension(url: string, validExtensions: string[]) {
-    return validExtensions.some((extension) => url.endsWith(extension));
-  }
-
-  /**
-   * 检测文件URL的类型
-   * @param {string} url - 文件的URL
-   * @returns {string} - 如果URL与任何已知类型匹配，则返回文件类型，否则返回"unknown"
-   */
-  static _detectFileType(url: string) {
-    for (const [type, extensions] of _FileTypeChecker.cachedEntries) {
-      if (extensions.some((extension) => url.endsWith(extension))) {
-        return type;
-      }
-    }
-    return "unknown";
-  }
 }
 
 /**
@@ -782,7 +433,7 @@ export class _FileTypeChecker {
  * @param list T[] - 需要旋转的列表，列表元素类型为泛型T
  * @returns T[][] - 返回一个二维数组，每个内部数组代表原列表的一种旋转形式
  */
-export function _RotateList<T>(list: T[]) {
+export function _Utility_RotateList<T>(list: T[]) {
   // 使用map函数遍历列表，对于列表中的每个元素（这里不需要元素本身，所以用_表示）
   // i表示当前元素的索引，利用这个索引对列表进行分割和重组
   return list.map((_, i) => {
@@ -798,7 +449,7 @@ export function _RotateList<T>(list: T[]) {
  * @param {any} val - 需要克隆的值
  * @returns {any} - 克隆后的值
  */
-export function _Clone<T>(val: T) {
+export function _Utility_Clone<T>(val: T) {
   // 保存原始的structuredClone方法引用
   const oldClone = window.structuredClone;
 
@@ -807,7 +458,9 @@ export function _Clone<T>(val: T) {
     // 如果val为null或不是对象，则直接返回val
     if (val === null || typeof val !== "object") return val;
     // 使用_MergeObjects函数合并对象，如果是数组则传递空数组作为第一个参数，否则传递空对象
-    return _MergeObjects(Array.isArray(val) ? [] : {}, val) as T | undefined;
+    return _Utility_MergeObjects(Array.isArray(val) ? [] : {}, val) as
+      | T
+      | undefined;
   };
 
   // 尝试使用原始的structuredClone方法或自定义的newClone方法进行克隆
@@ -825,7 +478,7 @@ export function _Clone<T>(val: T) {
 /**
  * 管理通过键值对打开的窗口
  */
-export class _KeyedWindowManager {
+export class _Utility_KeyedWindowManager {
   // 存储键与对应窗口的Map
   private static keys = new Map<string, Window>();
 
@@ -917,7 +570,7 @@ export class _KeyedWindowManager {
  * @param mimeType - 期望的图像MIME类型，默认为'image/png'
  * @returns 成功时返回图像的URL，失败时返回null
  */
-export function _Danger_ConvertDataToImageUrl(
+export function _Utility_ConvertDataToImageUrl(
   data: string | ArrayBuffer | Uint8Array | File,
   mimeType: string = "image/png"
 ) {
@@ -940,7 +593,7 @@ export function _Danger_ConvertDataToImageUrl(
       if (dataUrlMatch) {
         // 验证是否包含base64声明
         if (!dataUrlMatch[2]) {
-          throw new Error("无效的数据 URL：缺少 base64 编码声明");
+          return console.error("无效的数据 URL：缺少 base64 编码声明");
         }
 
         // 提取并处理MIME类型
@@ -948,7 +601,7 @@ export function _Danger_ConvertDataToImageUrl(
         base64Data = dataUrlMatch[3];
 
         if (!base64Data) {
-          throw new Error("数据 URL 包含空有效负载");
+          return console.error("数据 URL 包含空有效负载");
         }
       }
 
@@ -976,7 +629,7 @@ export function _Danger_ConvertDataToImageUrl(
 
     // 无效数据类型
     else {
-      throw new Error(
+      return console.error(
         "不支持的数据类型。应为 Base64 字符串、ArrayBuffer 或 Uint8Array"
       );
     }
@@ -1002,17 +655,17 @@ export function _Danger_ConvertDataToImageUrl(
  * @param level 耗时与颜色对应的数组，用于在控制台中着色显示
  * @param maxHistory 保留的最大历史记录数，默认为30
  */
-export function _TimeConsumption(
+export function _Utility_TimeConsumption(
   func: Function,
   level: [number, string][],
   maxHistory = 30
 ) {
   // 检查参数类型
   if (typeof func !== "function") {
-    throw new Error("The first argument must be a function.");
+    return console.error("第一个参数必须是一个函数。");
   }
   if (!Array.isArray(level)) {
-    throw new Error("The second argument must be an array.");
+    return console.error("第二个参数必须是一个数组。");
   }
 
   // 在类中添加属性
@@ -1032,7 +685,7 @@ export function _TimeConsumption(
   };
 
   // 返回一个闭包函数，用于执行原始函数并测量其执行时间
-  return function (...args: any[]) {
+  return function _Utility(...args: any[]) {
     // 记录开始时间
     const startTime = performance.now();
 
@@ -1069,4 +722,36 @@ export function _TimeConsumption(
 
     return result;
   };
+}
+
+/**
+ * 暂停执行指定毫秒数的操作
+ * 此函数通过 busy-wait（忙等待）的方式实现，它会持续执行一些无用的操作以消耗时间
+ * 这种方法虽然简单，但会占用CPU资源，因此不推荐在实际应用中使用
+ *
+ * @param ms 暂停的毫秒数
+ * @returns 实际暂停的毫秒数
+ */
+export function _Utility_Sleep(ms: number) {
+  // 记录开始时间
+  const start = Date.now();
+  // 初始化一个用于防优化的变量
+  let dummy = performance.now();
+
+  // 当前时间未达到指定的暂停时间时，继续执行循环
+  while (Date.now() - start < ms) {
+    // 复合型防优化操作
+    // 通过数学运算和条件判断，防止JavaScript引擎优化掉这段无用的循环
+    dummy = Math.sin(dummy) * 1e6;
+    if (dummy > 1e6 || dummy < -1e6) dummy = 0;
+    try {
+      // 进一步的防优化操作
+      // 将dummy的值转换为字符串并试图修改URL的hash值，以防止被优化
+      const str = dummy.toString().substring(0, 8);
+      history.replaceState(null, "", `#${str}`);
+    } catch {}
+  }
+
+  // 返回实际暂停的时间
+  return Date.now() - start;
 }
