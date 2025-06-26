@@ -93,6 +93,81 @@ export function _Valid_IsPointInPolygon(
 }
 
 /**
+ * 判断无限延伸的直线是否与矩形区域相交
+ * @param rectCorner1 矩形对角顶点1 [x, y]
+ * @param rectCorner2 矩形对角顶点2 [x, y]
+ * @param linePointA 直线上一点A [x, y]
+ * @param linePointB 直线上一点B [x, y]
+ * @returns 直线是否与矩形相交
+ */
+export function _Valid_DoesInfiniteLineIntersectRectangle(
+  rectCorner1: [number, number],
+  rectCorner2: [number, number],
+  linePointA: [number, number],
+  linePointB: [number, number]
+): boolean {
+  // 计算矩形边界范围
+  const rectMinX = Math.min(rectCorner1[0], rectCorner2[0]);
+  const rectMaxX = Math.max(rectCorner1[0], rectCorner2[0]);
+  const rectMinY = Math.min(rectCorner1[1], rectCorner2[1]);
+  const rectMaxY = Math.max(rectCorner1[1], rectCorner2[1]);
+
+  // 矩形四个顶点（顺时针顺序）
+  const rectVertices: [number, number][] = [
+    [rectMinX, rectMinY], // 左上
+    [rectMaxX, rectMinY], // 右上
+    [rectMaxX, rectMaxY], // 右下
+    [rectMinX, rectMaxY], // 左下
+  ];
+
+  // 计算直线方程系数: Ax + By + C = 0
+  const coefA = linePointB[1] - linePointA[1];
+  const coefB = linePointA[0] - linePointB[0];
+  const coefC = linePointB[0] * linePointA[1] - linePointA[0] * linePointB[1];
+
+  // 处理两点重合的退化情况
+  if (coefA === 0 && coefB === 0) {
+    const [pointX, pointY] = linePointA;
+    return (
+      pointX >= rectMinX &&
+      pointX <= rectMaxX &&
+      pointY >= rectMinY &&
+      pointY <= rectMaxY
+    );
+  }
+
+  // 检测矩形顶点在直线的分布情况
+  const FLOAT_EPSILON = 1e-10; // 浮点计算容差
+  let hasPositiveSidePoint = false;
+  let hasNegativeSidePoint = false;
+
+  for (const [vertexX, vertexY] of rectVertices) {
+    const positionValue = coefA * vertexX + coefB * vertexY + coefC;
+
+    // 顶点落在直线上（直接判定相交）
+    if (Math.abs(positionValue) < FLOAT_EPSILON) {
+      return true;
+    }
+    // 顶点在直线正侧
+    else if (positionValue > FLOAT_EPSILON) {
+      hasPositiveSidePoint = true;
+    }
+    // 顶点在直线负侧
+    else {
+      hasNegativeSidePoint = true;
+    }
+
+    // 当检测到直线穿过矩形时提前退出
+    if (hasPositiveSidePoint && hasNegativeSidePoint) {
+      return true;
+    }
+  }
+
+  // 当矩形顶点分居直线两侧时判定相交
+  return hasPositiveSidePoint && hasNegativeSidePoint;
+}
+
+/**
  * 数据类型
  * @param {any} value
  * @returns string

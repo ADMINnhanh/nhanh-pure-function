@@ -74,6 +74,8 @@ export function _Math_PointToLineDistance(
  * @param radius 圆弧半径
  * @param startAngle 起始角度（弧度制，0表示X轴正方向）
  * @param endAngle 结束角度（弧度制）
+ * @param axisX X轴方向（1=正方向向右，-1=正方向向左）
+ * @param axisY Y轴方向（1=正方向向上，-1=正方向向下）
  * @returns [起点坐标[x,y], 终点坐标[x,y]]
  */
 export function _Math_GetArcPoints(
@@ -81,15 +83,17 @@ export function _Math_GetArcPoints(
   y: number,
   radius: number,
   startAngle: number,
-  endAngle: number
+  endAngle: number,
+  axisX: number = 1,
+  axisY: number = 1
 ): [[number, number], [number, number]] {
-  // 计算起点坐标
-  const startX = x + radius * Math.cos(startAngle);
-  const startY = y + radius * Math.sin(startAngle);
+  // 计算起点坐标（考虑坐标轴方向）
+  const startX = x + radius * Math.cos(startAngle) * axisX;
+  const startY = y + radius * Math.sin(startAngle) * axisY;
 
-  // 计算终点坐标
-  const endX = x + radius * Math.cos(endAngle);
-  const endY = y + radius * Math.sin(endAngle);
+  // 计算终点坐标（考虑坐标轴方向）
+  const endX = x + radius * Math.cos(endAngle) * axisX;
+  const endY = y + radius * Math.sin(endAngle) * axisY;
 
   return [
     [startX, startY],
@@ -117,4 +121,52 @@ export function _Math_GetMidpoint(
   const midX = (x1 + x2) / 2;
   const midY = (y1 + y2) / 2;
   return { x: midX, y: midY };
+}
+
+/**
+ * 计算从起点沿方向向量延伸后与画布边界的交点
+ * @param startPoint 线段起点坐标 [x, y]
+ * @param direction 方向向量 [dx, dy]
+ * @param canvasWidth 画布宽度
+ * @param canvasHeight 画布高度
+ * @returns 与边界的交点坐标，若无有效交点返回 null
+ */
+export function _Math_GetBoundaryIntersection(
+  startPoint: [number, number],
+  direction: [number, number],
+  canvasWidth: number,
+  canvasHeight: number
+): [number, number] | null {
+  const [startX, startY] = startPoint;
+  const [dirX, dirY] = direction;
+  let minT = Infinity; // 存储到达边界的最小正比例系数
+
+  // 检测左右边界（垂直边界）
+  if (dirX !== 0) {
+    const tToVerticalBoundary =
+      dirX > 0
+        ? (canvasWidth - startX) / dirX // 到达右边界
+        : -startX / dirX; // 到达左边界
+
+    if (tToVerticalBoundary > 0) {
+      minT = Math.min(minT, tToVerticalBoundary);
+    }
+  }
+
+  // 检测上下边界（水平边界）
+  if (dirY !== 0) {
+    const tToHorizontalBoundary =
+      dirY > 0
+        ? (canvasHeight - startY) / dirY // 到达下边界
+        : -startY / dirY; // 到达上边界
+
+    if (tToHorizontalBoundary > 0) {
+      minT = Math.min(minT, tToHorizontalBoundary);
+    }
+  }
+
+  // 当向量指向边界外时返回 null
+  return minT === Infinity
+    ? null
+    : [startX + dirX * minT, startY + dirY * minT];
 }
