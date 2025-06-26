@@ -1,5 +1,4 @@
 import { WindowTarget } from "../Constant";
-import { _Format_HrefName } from "../Format";
 import { _Valid_DataType } from "../Valid";
 
 /**
@@ -9,7 +8,7 @@ import { _Valid_DataType } from "../Valid";
 export function _Utility_ExecuteWhenIdle(callback: Function) {
   if (typeof callback !== "function")
     return console.error("非函数：", callback);
-  const loop = function _Utility(deadline: IdleDeadline) {
+  const loop = function (deadline: IdleDeadline) {
     if (deadline.didTimeout || deadline.timeRemaining() <= 0)
       requestIdleCallback(loop);
     else callback();
@@ -36,27 +35,6 @@ export function _Utility_WaitForCondition(
       requestIdleCallback(checkCondition);
     };
     checkCondition();
-  });
-}
-
-/**
- * 排除子串
- * @param inputString 需裁剪字符串
- * @param substringToDelete 被裁减字符串
- * @param delimiter 分隔符
- * @returns 裁减后的字符串
- */
-export function _Utility_ExcludeSubstring(
-  inputString: string,
-  substringToDelete: string,
-  delimiter = ","
-) {
-  const regex = new RegExp(
-    `(^|${delimiter})${substringToDelete}(${delimiter}|$)`,
-    "g"
-  );
-  return inputString.replace(regex, function _Utility($0, $1, $2) {
-    return $1 === $2 ? delimiter : "";
   });
 }
 
@@ -125,54 +103,6 @@ export function _Utility_MergeObjects<T, T1>(
 }
 
 /**
- * 读取文件
- * @param src 文件地址
- * @returns 文件的字符串内容
- */
-export function _Utility_ReadFile(src: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    fetch(src)
-      .then((response) => resolve(response.text()))
-      .catch((error) => {
-        console.error("Error fetching :", error);
-        reject(error);
-      });
-  });
-}
-
-/**
- * 下载文件
- * @param {string} href - 文件路径
- * @param {string} [fileName] - 导出文件名
- */
-export function _Utility_DownloadFile(href: string, fileName?: string) {
-  return new Promise((resolve, reject) => {
-    try {
-      fileName = fileName || _Format_HrefName(href, "downloaded_file");
-      fetch(href)
-        .then((response) => {
-          if (!response.ok) reject(`文件下载失败，状态码: ${response.status}`);
-          return response.blob();
-        })
-        .then((blob) => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = decodeURIComponent(fileName!);
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          resolve(blob);
-        })
-        .catch(reject);
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-/**
  * 获取帧率
  * @param {(fps , frameTime)=>void} callback callback( 帧率 , 每帧时间 )
  * @param {Number} referenceNode 参考节点数量
@@ -201,36 +131,6 @@ export function _Utility_GetFrameRate(
 }
 
 /**
- * 创建文件并下载
- * @param {BlobPart[]} content 文件内容
- * @param {string} fileName 文件名称
- * @param {BlobPropertyBag} options Blob 配置
- */
-export function _Utility_CreateAndDownloadFile(
-  content: BlobPart[],
-  fileName: string,
-  options?: BlobPropertyBag
-) {
-  if (!options) {
-    let type = fileName.replace(/^[^.]+./, "");
-    type = type == fileName ? "text/plain" : "application/" + type;
-    options = { type };
-  }
-  const bolb = new Blob(content, options);
-  // 创建一个 URL，该 URL 可以用于在浏览器中引用 Blob 对象（例如，在 <a> 标签的 href 属性中）
-  const url = URL.createObjectURL(bolb);
-  // 你可以创建一个链接来下载这个 Blob 对象
-  const downloadLink = document.createElement("a");
-  downloadLink.href = url;
-  downloadLink.download = fileName; // 设置下载文件的名称
-  document.body.appendChild(downloadLink); // 添加到文档中
-  downloadLink.click(); // 模拟点击以开始下载
-  document.body.removeChild(downloadLink); // 然后从文档中移除
-  // 最后，别忘了撤销 Blob 对象的 URL，以释放资源
-  URL.revokeObjectURL(url);
-}
-
-/**
  * 生成一个UUID（通用唯一标识符）字符串
  * 可以选择性地在UUID前面添加前缀
  *
@@ -240,14 +140,11 @@ export function _Utility_CreateAndDownloadFile(
 export function _Utility_GenerateUUID(prefix = "") {
   return (
     prefix +
-    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-      /[xy]/g,
-      function _Utility(c) {
-        const r = (Math.random() * 16) | 0; // 随机生成一个0到15的数
-        const v = c === "x" ? r : (r & 0x3) | 0x8; // 对于'y'位, v = (r & 0x3 | 0x8) 确保变体正确
-        return v.toString(16); // 将数字转换为16进制
-      }
-    )
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0; // 随机生成一个0到15的数
+      const v = c === "x" ? r : (r & 0x3) | 0x8; // 对于'y'位, v = (r & 0x3 | 0x8) 确保变体正确
+      return v.toString(16); // 将数字转换为16进制
+    })
   );
 }
 
@@ -262,7 +159,7 @@ export function _Utility_Debounce<T extends (...args: any[]) => void>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout | undefined;
-  return function _Utility(...args) {
+  return function (...args) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       fn(...args);
@@ -283,14 +180,14 @@ export function _Utility_Throttle<T extends (...args: any[]) => void>(
 ): (...args: Parameters<T>) => void {
   let lastCallTime = -Infinity;
 
-  return function _Utility(...args) {
+  return function (...args) {
     const now = performance.now();
     if (now - lastCallTime > delay) {
       lastCallTime = now;
       try {
         fn(...args);
       } catch (error) {
-        console.error("Throttled function _Utilityexecution failed:", error);
+        console.error("Throttled function execution failed:", error);
       }
     }
   };
@@ -685,7 +582,7 @@ export function _Utility_TimeConsumption(
   };
 
   // 返回一个闭包函数，用于执行原始函数并测量其执行时间
-  return function _Utility(...args: any[]) {
+  return function (...args: any[]) {
     // 记录开始时间
     const startTime = performance.now();
 

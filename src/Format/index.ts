@@ -209,3 +209,24 @@ export function _Format_CamelCase(str: string, isRemoveDelimiter?: boolean) {
   if (isRemoveDelimiter) return str.replace(/[^a-zA-Z]+/g, "");
   return str;
 }
+
+/**
+ * 排除子串
+ * @param inputString 需裁剪字符串
+ * @param substringToDelete 被裁减字符串
+ * @param delimiter 分隔符
+ * @returns 裁减后的字符串
+ */
+export function _Format_ExcludeSubstring(
+  inputString: string,
+  substringToDelete: string,
+  delimiter = ","
+) {
+  const regex = new RegExp(
+    `(^|${delimiter})${substringToDelete}(${delimiter}|$)`,
+    "g"
+  );
+  return inputString.replace(regex, function ($0, $1, $2) {
+    return $1 === $2 ? delimiter : "";
+  });
+}
