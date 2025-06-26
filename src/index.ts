@@ -1,7 +1,7 @@
 import "./index.less";
 
 export * from "./Utility";
-export * from "./View";
+export * from "./Element";
 export * from "./Math";
 export * from "./Valid";
 export * from "./Animate";

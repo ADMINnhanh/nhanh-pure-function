@@ -10,7 +10,7 @@ import {
  * 滚动结束监听器
  * @param {(trigger: "vertical" | "horizontal") => void} callback
  */
-export function _View_ScrollEndListener(
+export function _Element_ScrollEndListener(
   callback: (trigger: "vertical" | "horizontal") => void
 ) {
   const debouncedCallback = _Utility_Debounce(callback, 100);
@@ -61,7 +61,7 @@ export function _View_ScrollEndListener(
  * @param  options.uiLibrary 项目使用的 ui库 , 用于排除  ui库 创建的元素 , 避免点击 ui库 创建的元素时意外的执行 callback
  * @param  options.isClickAllowed 是否允许该点击 ( 如果不确定可以返回 undefined )
  */
-export function _View_CloseOnOutsideClick(
+export function _Element_CloseOnOutsideClick(
   querySelector: string[],
   callback: Function,
   options?: {
@@ -119,7 +119,7 @@ export function _View_CloseOnOutsideClick(
 }
 
 /** 拖拽dom */
-export class _View_Drag {
+export class _Element_Drag {
   #dom: DragOption["dragDom"] = undefined;
   #isAllowed = false;
   #eventFunction: EventFunctionMap = {};
@@ -199,7 +199,7 @@ export class _View_Drag {
 }
 
 /** 局部拖拽 计算位置距离/百分比 */
-export class _View_LocalDrag {
+export class _Element_LocalDrag {
   #parentDom: DragOption["dragDom"] = undefined;
   #isAllowed = false;
   #eventFunction: EventFunctionMap = {};
@@ -302,7 +302,7 @@ export class _View_LocalDrag {
 }
 
 /** 进入全屏模式 */
-export function _View_EnterFullscreen(content?: HTMLElement): Promise<void> {
+export function _Element_EnterFullscreen(content?: HTMLElement): Promise<void> {
   const ts_content = content || (document.documentElement as any);
   if (ts_content.requestFullscreen) {
     return ts_content.requestFullscreen();
@@ -319,7 +319,7 @@ export function _View_EnterFullscreen(content?: HTMLElement): Promise<void> {
   return Promise.reject("No Fullscreen API");
 }
 /** 退出全屏模式 */
-export function _View_ExitFullscreen(): Promise<void> {
+export function _Element_ExitFullscreen(): Promise<void> {
   const ts_document = document as any;
 
   if (document.exitFullscreen) {
@@ -337,7 +337,7 @@ export function _View_ExitFullscreen(): Promise<void> {
   return Promise.reject("No ExitFullscreen API");
 }
 /** 判断是否处于全屏模式 */
-export function _View_IsFullscreen(content?: HTMLElement) {
+export function _Element_IsFullscreen(content?: HTMLElement) {
   const ts_document = document as any;
 
   const fullTarget =
@@ -357,10 +357,10 @@ export function _View_IsFullscreen(content?: HTMLElement) {
  * @param {HTMLElement} content - 需要进入全屏的元素
  * 该函数通过检查不同浏览器的特定方法来实现全屏切换
  */
-export function _View_Fullscreen(content?: HTMLElement) {
+export function _Element_Fullscreen(content?: HTMLElement) {
   return function () {
-    if (_View_IsFullscreen(content)) _View_ExitFullscreen();
-    else _View_EnterFullscreen(content);
+    if (_Element_IsFullscreen(content)) _Element_ExitFullscreen();
+    else _Element_EnterFullscreen(content);
   };
 }
 
@@ -369,7 +369,7 @@ export function _View_Fullscreen(content?: HTMLElement) {
  * @param {string} width
  * @returns 对应的单位为px的宽
  */
-export function _View_GetOtherSizeInPixels(
+export function _Element_GetOtherSizeInPixels(
   width: string,
   target?: HTMLElement
 ) {
@@ -392,7 +392,7 @@ export function _View_GetOtherSizeInPixels(
  * @param target 目标元素或尺寸，可以是DOM元素、选择器字符串或尺寸数组
  * @returns 返回计算后的画布尺寸，格式为[宽度, 高度]
  */
-export function _View_CalculateCanvasSize(
+export function _Element_CalculateCanvasSize(
   aspectRatio: number,
   target: Element | string | [number, number]
 ) {
@@ -439,7 +439,7 @@ export function _View_CalculateCanvasSize(
  * @param timeout 超时时间，单位为毫秒，默认为5000ms
  * @returns 一个Promise对象，包含加载的图片对象及其宽高比
  */
-export function _View_LoadImage(
+export function _Element_LoadImage(
   src: string,
   timeout: number = 5000
 ): Promise<[HTMLImageElement, number]> {
