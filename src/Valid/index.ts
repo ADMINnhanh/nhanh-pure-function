@@ -21,11 +21,14 @@ export function _Valid_IsNumberArray(
   arr: unknown,
   minLength: number = 2
 ): boolean {
-  return (
-    Array.isArray(arr) &&
-    arr.length >= minLength &&
-    arr.every((item) => typeof item === "number" && Number.isFinite(item))
-  );
+  const isArr = Array.isArray(arr) && arr.length >= minLength;
+
+  if (isArr) {
+    for (let i = 0; i < arr.length; i++) {
+      if (typeof arr[i] != "number" || !Number.isFinite(arr[i])) return false;
+    }
+  } else return false;
+  return true;
 }
 
 /**
@@ -39,12 +42,14 @@ export function _Valid_Is2DNumberArray(
   arr: unknown,
   minLength: number = 1,
   innerMinLength: number = 2
-): boolean {
-  return (
-    Array.isArray(arr) &&
-    arr.length >= minLength &&
-    arr.every((innerArr) => _Valid_IsNumberArray(innerArr, innerMinLength))
-  );
+) {
+  const isArr = Array.isArray(arr) && arr.length >= minLength;
+  if (isArr) {
+    for (let i = 0; i < arr.length; i++) {
+      if (!_Valid_IsNumberArray(arr[i], innerMinLength)) return false;
+    }
+  } else return false;
+  return true;
 }
 
 /**
