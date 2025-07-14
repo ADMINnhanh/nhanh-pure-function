@@ -69,6 +69,8 @@ export function _Animate_CreateOscillator(
 
     if (newSteps <= 0) {
       errors.push("分段数必须为正数");
+    } else if (calculateStepSize() == 0) {
+      errors.push("数值精度过低，致使动画步长为 0");
     }
 
     return errors;
@@ -112,7 +114,7 @@ export function _Animate_CreateOscillator(
       current = clamp(target);
 
       if (validateParams(min, max, steps).length) {
-        return console.warn("配置参数错误", this.getParams());
+        return console.error("配置参数错误", this.getParams());
       }
 
       // 3. 启动动画（如果未运行）
@@ -156,14 +158,14 @@ export function _Animate_NumericTransition(
   callback: (currentValue: number) => void,
   precision: number = 2
 ): void {
-  if (stepCount <= 0) return;
+  if (stepCount <= 0) return console.error("动画步数 必须为正数");
 
   const toFixedPrecision = (value: number) => Number(value.toFixed(precision));
   const distance = targetValue - startValue;
 
   // 计算实际步长（考虑精度）
   const stepSize = toFixedPrecision(Math.abs(distance) / stepCount);
-  if (stepSize === 0) return;
+  if (stepSize === 0) return console.error("数值精度过低，致使动画步长为 0");
 
   const direction = Math.sign(distance);
   let currentValue = startValue;
