@@ -174,13 +174,13 @@ export function _Utility_Throttle<T extends (...args: any[]) => void>(
  * @returns {any} 路径的最后一个属性对应的值或undefined
  */
 export function _Utility_InitTargetByPath(model: any, path: string): any {
+  if (!model || !path) return model;
   const arr = path.split(".");
   return arr.reduce((prev, curr, index) => {
-    if (!(curr in prev)) {
-      if (index === arr.length - 1) prev[curr] = undefined;
-      else prev[curr] = {};
-    }
-    return prev[curr];
+    if (prev.hasOwnProperty(curr)) return prev[curr];
+
+    if (index === arr.length - 1) return (prev[curr] = undefined);
+    else return (prev[curr] = {});
   }, model);
 }
 /**
@@ -192,10 +192,11 @@ export function _Utility_InitTargetByPath(model: any, path: string): any {
  * @returns {Object|undefined} - 返回目标对象，如果路径不存在则返回undefined
  */
 export function _Utility_GetTargetByPath(model: any, path: string): any {
+  if (!model || !path) return model;
   const arr = path.split(".");
   return arr.reduce((prev, curr, index) => {
     if (prev.hasOwnProperty(curr)) return prev[curr];
-    return (prev[curr] = index == arr.length - 1 ? undefined : {});
+    return index == arr.length - 1 ? undefined : {};
   }, model);
 }
 /**
@@ -209,15 +210,18 @@ export function _Utility_GetTargetByPath(model: any, path: string): any {
  * @param {*} value - 要设置的新值
  * @returns {*} - 返回更新后的模型对象中的值
  */
-export function _Utility_UpdateTargetByPath(
+export function _Utility_SetTargetByPath(
   model: any,
   path: string,
   value: any
 ): any {
+  if (!model || !path) return model;
   const arr = path.split(".");
   return arr.reduce((prev, curr, index) => {
     if (index === arr.length - 1) prev[curr] = value;
-    return prev[curr];
+
+    if (prev.hasOwnProperty(curr)) return prev[curr];
+    return (prev[curr] = {});
   }, model);
 }
 
