@@ -171,15 +171,20 @@ export function _Utility_Throttle<T extends (...args: any[]) => void>(
  *
  * @param {Object} model - 要初始化的模型对象
  * @param {string} path - 属性路径，使用英文句点分隔
- * @returns {any} 路径的最后一个属性对应的值或undefined
+ * @param {any} initValue - 初始值
+ * @returns {any} 路径的最后一个属性对应的值或 initValue
  */
-export function _Utility_InitTargetByPath(model: any, path: string): any {
+export function _Utility_InitTargetByPath(
+  model: any,
+  path: string,
+  initValue?: any
+): any {
   if (!model || !path) return model;
   const arr = path.split(".");
   return arr.reduce((prev, curr, index) => {
     if (prev.hasOwnProperty(curr)) return prev[curr];
 
-    if (index === arr.length - 1) return (prev[curr] = undefined);
+    if (index === arr.length - 1) return (prev[curr] = initValue);
     else return (prev[curr] = {});
   }, model);
 }
