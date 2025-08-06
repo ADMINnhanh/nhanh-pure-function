@@ -108,7 +108,7 @@ export function _Math_CalculateDistance2D(
   x2: number,
   y2: number
 ) {
-  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  return Math.hypot(Math.abs(x2 - x1), Math.abs(y2 - y1));
 }
 
 /** 获取两点的中点 */
