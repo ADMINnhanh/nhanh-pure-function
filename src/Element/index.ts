@@ -313,21 +313,21 @@ function GetElement(element?: HTMLElement | string): HTMLElement {
 }
 /** 进入全屏模式 */
 export function _Element_EnterFullscreen(
-  content?: HTMLElement | string
+  element?: HTMLElement | string
 ): Promise<void> {
-  const ts_content = GetElement(content) as any;
+  const ts_element = GetElement(element) as any;
 
-  if (ts_content.requestFullscreen) {
-    return ts_content.requestFullscreen();
-  } else if (ts_content.mozRequestFullScreen) {
+  if (ts_element.requestFullscreen) {
+    return ts_element.requestFullscreen();
+  } else if (ts_element.mozRequestFullScreen) {
     // Firefox
-    return ts_content.mozRequestFullScreen();
-  } else if (ts_content.webkitRequestFullscreen) {
+    return ts_element.mozRequestFullScreen();
+  } else if (ts_element.webkitRequestFullscreen) {
     // Chrome, Safari and Opera
-    return ts_content.webkitRequestFullscreen();
-  } else if (ts_content.msRequestFullscreen) {
+    return ts_element.webkitRequestFullscreen();
+  } else if (ts_element.msRequestFullscreen) {
     // IE/Edge
-    return ts_content.msRequestFullscreen();
+    return ts_element.msRequestFullscreen();
   }
   return Promise.reject("No Fullscreen API");
 }
@@ -350,8 +350,8 @@ export function _Element_ExitFullscreen(): Promise<void> {
   return Promise.reject("No ExitFullscreen API");
 }
 /** 判断是否处于全屏模式 */
-export function _Element_IsFullscreen(content?: HTMLElement | string) {
-  const ts_content = GetElement(content) as any;
+export function _Element_IsFullscreen(element?: HTMLElement | string) {
+  const ts_element = GetElement(element) as any;
   const ts_document = document as any;
 
   const fullTarget =
@@ -360,18 +360,23 @@ export function _Element_IsFullscreen(content?: HTMLElement | string) {
     ts_document.mozFullScreenElement ||
     ts_document.msFullscreenElement;
 
-  return ts_content == fullTarget;
+  return (
+    ts_element == fullTarget ||
+    (!element &&
+      window.innerWidth == screen.width &&
+      window.innerHeight == screen.height)
+  );
 }
 /**
  * 返回一个用于切换全屏模式的函数
  * @param {HTMLElement} content - 需要进入全屏的元素
  * 该函数通过检查不同浏览器的特定方法来实现全屏切换
  */
-export function _Element_Fullscreen(content?: HTMLElement | string) {
-  content = GetElement(content);
+export function _Element_Fullscreen(element?: HTMLElement | string) {
+  element = GetElement(element);
   return function () {
-    if (_Element_IsFullscreen(content)) _Element_ExitFullscreen();
-    else _Element_EnterFullscreen(content);
+    if (_Element_IsFullscreen(element)) _Element_ExitFullscreen();
+    else _Element_EnterFullscreen(element);
   };
 }
 /**
