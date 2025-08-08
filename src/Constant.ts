@@ -1,5 +1,5 @@
-export const EXTENSION_TO_MIME = {
   /* 常见扩展名映射 */
+export const EXTENSION_TO_MIME = {
   ".mp3": "audio/mpeg",
   ".mp4": "video/mp4",
   ".m4a": "audio/mp4",
@@ -63,7 +63,6 @@ export const EXTENSION_TO_MIME = {
   ".otf": "font/otf",
   ".eot": "application/vnd.ms-fontobject",
   ".map": "application/json",
-  // 可根据需要继续扩展
 };
 
 export const FILE_EXTENSIONS = {
