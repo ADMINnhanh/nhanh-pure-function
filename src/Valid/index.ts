@@ -1,6 +1,6 @@
 import { EXTENSION_TO_MIME, FILE_EXTENSIONS, FileType } from "../Constant";
 import { _Format_HrefName } from "../Format";
-import { Point } from "./type";
+import { DataType, Point } from "./type";
 
 /**
  * 是正常对象吗
@@ -178,9 +178,10 @@ export function _Valid_DoesInfiniteLineIntersectRectangle(
  * @returns string
  */
 export function _Valid_DataType(value: any) {
-  if (Array.isArray(value)) return "array";
-  if (value === null) return "null";
-  return typeof value;
+  return Object.prototype.toString
+    .call(value)
+    .slice(8, -1)
+    .toLowerCase() as DataType;
 }
 
 /**

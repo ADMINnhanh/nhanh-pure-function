@@ -259,25 +259,147 @@ export function _Utility_Clone<T>(val: T) {
   // 保存原始的structuredClone方法引用
   const oldClone = window.structuredClone;
 
-  // 定义一个新的克隆方法，用于处理非对象或null值，以及对象的合并
-  const newClone = (val: T) => {
-    // 如果val为null或不是对象，则直接返回val
-    if (val === null || typeof val !== "object") return val;
-    // 使用_MergeObjects函数合并对象，如果是数组则传递空数组作为第一个参数，否则传递空对象
-    return _Utility_MergeObjects(Array.isArray(val) ? [] : {}, val) as
-      | T
-      | undefined;
+  // 深度克隆函数
+  const deepClone = <T>(_value: T, referenceMap = new WeakMap()): T => {
+    const value: any = _value;
+    // 基本类型直接返回
+    if (value === null || typeof value !== "object") {
+      return value;
+    }
+
+    // 处理循环引用
+    if (referenceMap.has(value)) {
+      return referenceMap.get(value);
+    }
+
+    const dataType = _Valid_DataType(value);
+
+    switch (dataType) {
+      case "array": {
+        const newArray: any[] = [];
+        referenceMap.set(value, newArray);
+        for (const item of value) {
+          newArray.push(deepClone(item, referenceMap));
+        }
+        return newArray as T;
+      }
+
+      case "object": {
+        // 处理 null（虽然前面已处理，但确保类型安全）
+        if (value === null) return value;
+
+        const newObj: Record<any, any> = {};
+        referenceMap.set(value, newObj);
+        for (const key in value) {
+          if (Object.prototype.hasOwnProperty.call(value, key)) {
+            newObj[key] = deepClone(value[key], referenceMap);
+          }
+        }
+        return newObj as T;
+      }
+
+      case "date": {
+        const newDate = new Date(value.getTime());
+        referenceMap.set(value, newDate);
+        return newDate as T;
+      }
+
+      case "regexp": {
+        const regex = value;
+        const newRegex = new RegExp(regex.source, regex.flags);
+        newRegex.lastIndex = regex.lastIndex;
+        referenceMap.set(value, newRegex);
+        return newRegex as T;
+      }
+
+      case "map": {
+        const newMap = new Map();
+        referenceMap.set(value, newMap);
+        (value as Map<any, any>).forEach((val, key) => {
+          newMap.set(
+            deepClone(key, referenceMap),
+            deepClone(val, referenceMap)
+          );
+        });
+        return newMap as T;
+      }
+
+      case "set": {
+        const newSet = new Set();
+        referenceMap.set(value, newSet);
+        (value as Set<any>).forEach((val) => {
+          newSet.add(deepClone(val, referenceMap));
+        });
+        return newSet as T;
+      }
+
+      // 处理其他可克隆对象类型
+      case "arraybuffer":
+      case "dataview":
+      case "int8array":
+      case "uint8array":
+      case "uint8clampedarray":
+      case "int16array":
+      case "uint16array":
+      case "int32array":
+      case "uint32array":
+      case "float32array":
+      case "float64array":
+      case "bigint64array":
+      case "biguint64array": {
+        const typedArray = value as ArrayBufferView;
+        const constructor = typedArray.constructor as new (
+          buffer: ArrayBuffer,
+          byteOffset?: number,
+          length?: number
+        ) => typeof typedArray;
+
+        // 克隆底层ArrayBuffer
+        const buffer = typedArray.buffer.slice(
+          typedArray.byteOffset,
+          typedArray.byteOffset + typedArray.byteLength
+        );
+
+        const cloned = new constructor(
+          buffer as ArrayBuffer,
+          typedArray.byteOffset,
+          typedArray.byteLength / (typedArray as any).BYTES_PER_ELEMENT
+        );
+
+        referenceMap.set(value, cloned);
+        return cloned as T;
+      }
+
+      // 处理特殊对象类型
+      case "error": {
+        const error = value as Error;
+        const newError = new (error.constructor as any)(error.message);
+        newError.stack = error.stack;
+        newError.name = error.name;
+        referenceMap.set(value, newError);
+        return newError as T;
+      }
+
+      // 处理不可克隆对象（直接返回原值）
+      case "function":
+      case "promise":
+      case "weakmap":
+      case "weakset":
+      default: {
+        return value;
+      }
+    }
   };
 
-  // 尝试使用原始的structuredClone方法或自定义的newClone方法进行克隆
+  // 尝试使用原始的structuredClone方法或自定义的deepClone方法进行克隆
   try {
-    // 如果oldClone存在，则使用oldClone方法进行克隆，否则使用newClone方法
-    return oldClone ? oldClone(val) : newClone(val);
+    // 如果oldClone存在，则使用oldClone方法进行克隆，否则使用deepClone方法
+    return oldClone ? oldClone(val) : deepClone(val);
   } catch (error) {
     // 使用日志系统或其他方式记录错误信息
     console.error("structuredClone error:", error);
-    // @ts-ignore 如果oldClone存在且之前的尝试失败，则再次使用newClone方法尝试克隆
-    return oldClone && newClone(val);
+    // @ts-ignore 如果oldClone存在且之前的尝试失败，则再次使用deepClone方法尝试克隆
+    return oldClone && deepClone(val);
   }
 }
 
