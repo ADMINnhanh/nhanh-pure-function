@@ -1,4 +1,4 @@
-import { WindowTarget } from "../Constant";
+import { PAPER_SIZES, PaperType, WindowTarget } from "../Constant";
 
 /**
  * 获取帧率
@@ -183,4 +183,65 @@ export class _Browser_KeyedWindowManager {
     this.keys.forEach((window, key) => window.close());
     this.keys.clear();
   }
+}
+
+/**
+ * 计算内容可用宽高及边距（考虑设备DPI）
+ * 确保：contentWidth + 2*paddingPx = 纸张宽度像素
+ * @param type 纸张类型
+ * @param padding 边距（毫米）
+ * @returns {
+ *   contentWidth: number;  // 内容可用宽度(px)
+ *   contentHeight: number; // 内容可用高度(px)
+ *   paddingPx: number;     // 边距(px) - 单边值
+ *   paperWidthPx: number;  // 纸张总宽度(px)
+ *   paperHeightPx: number; // 纸张总高度(px)
+ * }
+ */
+export function _Browser_GetPrintableArea(type: PaperType, padding: number) {
+  // 获取纸张基础尺寸
+  const paper = PAPER_SIZES[type];
+  if (!paper) throw new Error(`未知纸张类型: ${type}`);
+
+  const { width: paperWidthMM, height: paperHeightMM } = paper;
+
+  // 毫米转英寸（1英寸=25.4毫米）
+  const mmToInch = (mm: number) => mm / 25.4;
+
+  // 获取设备DPI
+  const getDeviceDPI = () => {
+    if (typeof window !== "undefined") {
+      return window.devicePixelRatio * 96;
+    }
+    return 300; // Node.js/打印环境
+  };
+
+  const dpi = getDeviceDPI();
+
+  // 辅助函数：毫米转像素（带四舍五入）
+  const mmToPx = (mm: number) => Math.round(mmToInch(mm) * dpi);
+
+  // 1. 先计算整个纸张的像素尺寸
+  const paperWidthPx = mmToPx(paperWidthMM);
+  const paperHeightPx = mmToPx(paperHeightMM);
+
+  // 2. 计算边距像素值（单边）
+  const paddingPx = mmToPx(padding);
+
+  // 3. 基于纸张像素尺寸计算内容区域（确保没有累积误差）
+  const contentWidth = Math.max(0, paperWidthPx - 2 * paddingPx);
+  const contentHeight = Math.max(0, paperHeightPx - 2 * paddingPx);
+
+  return {
+    /** 内容宽度（像素） */
+    contentWidth,
+    /** 内容高度（像素） */
+    contentHeight,
+    /** 边距（像素） */
+    paddingPx,
+    /** 纸张宽度（像素） */
+    paperWidthPx,
+    /** 纸张高度（像素） */
+    paperHeightPx,
+  };
 }

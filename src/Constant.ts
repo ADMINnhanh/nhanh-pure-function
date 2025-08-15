@@ -1,4 +1,4 @@
-  /* 常见扩展名映射 */
+/* 常见扩展名映射 */
 export const EXTENSION_TO_MIME = {
   ".mp3": "audio/mpeg",
   ".mp4": "video/mp4",
@@ -65,6 +65,7 @@ export const EXTENSION_TO_MIME = {
   ".map": "application/json",
 };
 
+/** 文件扩展名对应的MIME类型 */
 export const FILE_EXTENSIONS = {
   image: [
     ".jpg",
@@ -246,8 +247,10 @@ export const FILE_EXTENSIONS = {
     ".php",
   ],
 };
+/** 文件扩展名 */
 export type FileType = keyof typeof FILE_EXTENSIONS;
 
+/** 单位标签 */
 export const UNIT_LABELS = [
   "",
   "万",
@@ -264,5 +267,66 @@ export const UNIT_LABELS = [
   "极",
 ] as const;
 
+/** 浏览器窗口目标 */
 export const WINDOW_TARGET = ["_self", "_blank", "_parent", "_top"] as const;
+/** 浏览器窗口目标类型 */
 export type WindowTarget = (typeof WINDOW_TARGET)[number];
+
+/** 纸张尺寸 */
+export const PAPER_SIZES = {
+  // 北美标准尺寸 (毫米)
+  Letter: { width: 215.9, height: 279.4 }, // 8.5 × 11 英寸
+  Legal: { width: 215.9, height: 355.6 }, // 8.5 × 14 英寸
+  Tabloid: { width: 279.4, height: 431.8 }, // 11 × 17 英寸
+  Ledger: { width: 431.8, height: 279.4 }, // 17 × 11 英寸
+  Executive: { width: 184.2, height: 266.7 }, // 7.25 × 10.5 英寸
+
+  // 其他常见尺寸
+  Folio: { width: 215.9, height: 330.2 }, // 8.5 × 13 英寸
+  Quarto: { width: 215, height: 275 }, // 8.46 × 10.83 英寸
+  "Government-Letter": { width: 203.2, height: 266.7 }, // 8 × 10.5 英寸
+
+  // ISO A系列 (毫米)
+  A0: { width: 841, height: 1189 },
+  A1: { width: 594, height: 841 },
+  A2: { width: 420, height: 594 },
+  A3: { width: 297, height: 420 },
+  A4: { width: 210, height: 297 },
+  A5: { width: 148, height: 210 },
+  A6: { width: 105, height: 148 },
+  A7: { width: 74, height: 105 },
+  A8: { width: 52, height: 74 },
+  A9: { width: 37, height: 52 },
+  A10: { width: 26, height: 37 },
+
+  // ISO B系列 (毫米)
+  B0: { width: 1000, height: 1414 },
+  B1: { width: 707, height: 1000 },
+  B2: { width: 500, height: 707 },
+  B3: { width: 353, height: 500 },
+  B4: { width: 250, height: 353 },
+  B5: { width: 176, height: 250 },
+  B6: { width: 125, height: 176 },
+  B7: { width: 88, height: 125 },
+  B8: { width: 62, height: 88 },
+  B9: { width: 44, height: 62 },
+  B10: { width: 31, height: 44 },
+
+  // ISO C系列 (信封尺寸，毫米)
+  C0: { width: 917, height: 1297 },
+  C1: { width: 648, height: 917 },
+  C2: { width: 458, height: 648 },
+  C3: { width: 324, height: 458 },
+  C4: { width: 229, height: 324 },
+  C5: { width: 162, height: 229 },
+  C6: { width: 114, height: 162 },
+  C7: { width: 81, height: 114 },
+  C8: { width: 57, height: 81 },
+} as const;
+/** 纸张尺寸 */
+export type PaperType = keyof typeof PAPER_SIZES;
+/** 纸张尺寸列表 */
+export const PAPER_TYPES = Object.keys(PAPER_SIZES).map((key) => ({
+  value: key,
+  label: key,
+}));
