@@ -1,4 +1,4 @@
-import { PAPER_SIZES, PaperType, WindowTarget } from "../Constant";
+import { PAPER_SIZE_DEFINITIONS, PaperType, WindowTarget } from "../Constant";
 
 /**
  * 获取帧率
@@ -198,9 +198,12 @@ export class _Browser_KeyedWindowManager {
  *   paperHeightPx: number; // 纸张总高度(px)
  * }
  */
-export function _Browser_GetPrintableArea(type: PaperType, padding: number) {
+export function _Browser_CalculatePrintableArea(
+  type: PaperType,
+  padding: number
+) {
   // 获取纸张基础尺寸
-  const paper = PAPER_SIZES[type];
+  const paper = PAPER_SIZE_DEFINITIONS[type];
   if (!paper) throw new Error(`未知纸张类型: ${type}`);
 
   const { width: paperWidthMM, height: paperHeightMM } = paper;

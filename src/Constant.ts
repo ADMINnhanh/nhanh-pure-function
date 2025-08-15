@@ -273,7 +273,7 @@ export const WINDOW_TARGET = ["_self", "_blank", "_parent", "_top"] as const;
 export type WindowTarget = (typeof WINDOW_TARGET)[number];
 
 /** 纸张尺寸 */
-export const PAPER_SIZES = {
+export const PAPER_SIZE_DEFINITIONS = {
   // 北美标准尺寸 (毫米)
   Letter: { width: 215.9, height: 279.4 }, // 8.5 × 11 英寸
   Legal: { width: 215.9, height: 355.6 }, // 8.5 × 14 英寸
@@ -324,9 +324,11 @@ export const PAPER_SIZES = {
   C8: { width: 57, height: 81 },
 } as const;
 /** 纸张尺寸 */
-export type PaperType = keyof typeof PAPER_SIZES;
+export type PaperType = keyof typeof PAPER_SIZE_DEFINITIONS;
 /** 纸张尺寸列表 */
-export const PAPER_TYPES = Object.keys(PAPER_SIZES).map((key) => ({
-  value: key,
-  label: key,
-}));
+export const PAPER_SIZE_OPTIONS = Object.keys(PAPER_SIZE_DEFINITIONS).map(
+  (key) => ({
+    value: key,
+    label: key,
+  })
+);
