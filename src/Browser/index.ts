@@ -186,7 +186,7 @@ export class _Browser_KeyedWindowManager {
 }
 
 /**
- * 计算内容可用宽高及边距（考虑设备DPI）
+ * 计算纸张内容可用宽高及边距（考虑设备DPI）
  * 确保：contentWidth + 2*paddingPx = 纸张宽度像素
  * @param type 纸张类型
  * @param padding 边距（毫米）

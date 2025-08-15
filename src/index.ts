@@ -30,6 +30,7 @@
 // console.log("当前目录下的文件夹:\n", folders);
 
 import "./index.less";
+export * from "./Constant";
 
 export * from "./Animate";
 export * from "./Blob";
