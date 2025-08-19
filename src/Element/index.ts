@@ -520,3 +520,89 @@ export function _Element_LoadImage(
     img.crossOrigin = "Anonymous";
   });
 }
+
+/**
+ * 检查指定dom内所有图片的加载状态并返回结果
+ * @param id - 图片ID
+ * @returns - 图片加载状态信息
+ */
+export function _Element_CheckImagesLoaded(id: string): Promise<{
+  /** 是否全部加载完成 */
+  allLoaded: boolean;
+  /** 成功加载的图片数量 */
+  loaded: number;
+  /** 加载失败的图片数量 */
+  failed: number;
+  /** 总图片数量 */
+  total: number;
+  /** 加载失败的图片列表 */
+  errors: HTMLImageElement[];
+}> {
+  // 获取容器内所有img元素（包括子元素中的img）
+  const container = document.getElementById(id) as HTMLDivElement;
+  const images = container.querySelectorAll("img");
+  const total = images.length;
+  const errors: HTMLImageElement[] = []; // 存储加载失败的图片
+  let loadedCount = 0; // 已加载完成的数量
+
+  // 没有图片时直接返回
+  if (total === 0) {
+    return Promise.resolve({
+      allLoaded: true,
+      loaded: 0,
+      failed: 0,
+      total: 0,
+      errors: [],
+    });
+  }
+
+  return new Promise((resolve) => {
+    // 检查是否所有图片都已处理完毕
+    const checkCompletion = () => {
+      if (loadedCount === total) {
+        resolve({
+          allLoaded: errors.length === 0, // 全部加载完成（无失败）
+          loaded: total - errors.length, // 成功加载的数量
+          failed: errors.length,
+          total,
+          errors,
+        });
+      }
+    };
+
+    // 遍历所有图片，监听加载状态
+    images.forEach((img) => {
+      // 图片已经加载完成（从缓存读取）
+      if (img.complete) {
+        // 检查是否有错误（如src无效）
+        if (img.naturalWidth === 0) {
+          errors.push(img);
+        }
+        loadedCount++;
+        checkCompletion();
+        return;
+      }
+
+      // 监听加载成功事件
+      img.addEventListener(
+        "load",
+        () => {
+          loadedCount++;
+          checkCompletion();
+        },
+        { once: true }
+      );
+
+      // 监听加载失败事件（如404、格式错误）
+      img.addEventListener(
+        "error",
+        () => {
+          errors.push(img);
+          loadedCount++;
+          checkCompletion();
+        },
+        { once: true }
+      );
+    });
+  });
+}

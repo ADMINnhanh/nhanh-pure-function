@@ -1,4 +1,10 @@
 import { _Valid_DataType } from "../Valid";
+import {
+  _parsePathSegments,
+  ARRAY_PART_REGEX,
+  ARRAY_PATH_REGEX,
+  INDEX_EXTRACT_REGEX,
+} from "./type";
 
 /**
  * 寻找空闲时机执行传入方法
@@ -165,69 +171,123 @@ export function _Utility_Throttle<T extends (...args: any[]) => void>(
 }
 
 /**
- * 根据路径初始化目标对象
- * 如果路径中某个属性不存在，则会创建该属性及其所有父属性
- * 最终返回路径的最后一个属性对应的值或undefined（如果路径不存在）
- *
- * @param {Object} model - 要初始化的模型对象
- * @param {string} path - 属性路径，使用英文句点分隔
- * @param {any} initValue - 初始值
- * @returns {any} 路径的最后一个属性对应的值或 initValue
+ * 根据路径从对象中获取目标值
+ * @param rootObject - 根对象
+ * @param path - 访问路径，支持点号和数组索引语法（如 "a1.b2[0].c3"）
+ * @returns 目标值，如果路径无效则返回根对象
  */
-export function _Utility_InitTargetByPath(
-  model: any,
-  path: string,
-  initValue?: any
-): any {
-  if (!model || !path) return model;
-  const arr = path.split(".");
-  return arr.reduce((prev, curr, index) => {
-    if (prev.hasOwnProperty(curr)) return prev[curr];
+export function _Utility_GetTargetByPath(rootObject: any, path: string): any {
+  if (!rootObject || !path) return rootObject;
 
-    if (index === arr.length - 1) return (prev[curr] = initValue);
-    else return (prev[curr] = {});
-  }, model);
+  const pathSegments = _parsePathSegments(path);
+  if (!pathSegments.length) return rootObject;
+
+  // 遍历路径段，逐层访问对象属性
+  return pathSegments.reduce((currentObj, segment, segmentIndex) => {
+    const isFinalSegment = segmentIndex === pathSegments.length - 1;
+
+    // 处理数组路径段（包含索引的路径段）
+    if (ARRAY_PATH_REGEX.test(segment)) {
+      const pathParts = segment.match(ARRAY_PART_REGEX) || [];
+
+      // 遍历路径段内的各个部分（属性名和索引）
+      return pathParts.reduce((currentPart, part, partIndex) => {
+        // 处理属性名部分 (如 "items")
+        if (/^\w+$/.test(part)) {
+          return (
+            currentPart[part] || (partIndex < pathParts.length - 1 ? [] : {})
+          );
+        }
+
+        // 处理数组索引 (如 "[0]")
+        const indexMatch = part.match(INDEX_EXTRACT_REGEX);
+        const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+        const isFinalPart = partIndex === pathParts.length - 1;
+
+        if (isFinalPart && isFinalSegment) {
+          return currentPart[index]; // 最终值直接返回
+        }
+
+        // 初始化中间结构
+        return currentPart[index] || (isFinalPart ? {} : []);
+      }, currentObj);
+    }
+
+    // 处理普通属性路径段
+    return isFinalSegment
+      ? currentObj[segment] // 最终值
+      : currentObj[segment] || {}; // 中间对象
+  }, rootObject);
 }
+
 /**
- * 根据路径获取目标对象
- * 该函数用于在给定的模型中，通过路径字符串来获取深层嵌套的目标对象如果路径中的某一部分不存在，则会创建一个新的对象（除非已经是路径的最后一部分）
- *
- * @param {Object} model - 包含要查询的数据的模型对象
- * @param {string} path - 用点分隔的路径字符串，表示要访问的对象属性路径
- * @returns {Object|undefined} - 返回目标对象，如果路径不存在则返回undefined
- */
-export function _Utility_GetTargetByPath(model: any, path: string): any {
-  if (!model || !path) return model;
-  const arr = path.split(".");
-  return arr.reduce((prev, curr, index) => {
-    if (prev.hasOwnProperty(curr)) return prev[curr];
-    return index == arr.length - 1 ? undefined : {};
-  }, model);
-}
-/**
- * 根据路径更新目标值
- *
- * 该函数通过一个点分隔的路径来更新一个对象中的嵌套属性值
- * 它使用了reduce方法来遍历路径数组，并在路径的终点设置新的值
- *
- * @param {Object} model - 包含要更新数据的模型对象
- * @param {string} path - 点分隔的字符串路径，指示如何到达目标属性
- * @param {*} value - 要设置的新值
- * @returns {*} - 返回更新后的模型对象中的值
+ * 根据路径设置对象中的目标值
+ * @param rootObject - 根对象
+ * @param path - 访问路径，支持点号和数组索引语法（如 "a1.b2[0].c3"）
+ * @param value - 要设置的值
+ * @param skipIfExists - 如果为true，当目标位置已有值时跳过设置
+ * @returns 设置后的根对象
  */
 export function _Utility_SetTargetByPath(
-  model: any,
+  rootObject: any,
   path: string,
-  value: any
+  value: any,
+  skipIfExists?: boolean
 ): any {
-  if (!model || !path) return model;
-  const arr = path.split(".");
-  return arr.reduce((prev, curr, index) => {
-    if (index === arr.length - 1) prev[curr] = value;
+  if (!rootObject || !path) return value;
 
-    if (prev.hasOwnProperty(curr)) return prev[curr];
-    return (prev[curr] = {});
-  }, model);
+  const pathSegments = _parsePathSegments(path);
+  if (!pathSegments.length) return value;
+
+  // 遍历路径段，逐层创建对象结构并设置值
+  return pathSegments.reduce((currentObj, segment, segmentIndex) => {
+    const isFinalSegment = segmentIndex === pathSegments.length - 1;
+
+    // 处理数组路径段（包含索引的路径段）
+    if (ARRAY_PATH_REGEX.test(segment)) {
+      const pathParts = segment.match(ARRAY_PART_REGEX) || [];
+
+      // 遍历路径段内的各个部分（属性名和索引）
+      return pathParts.reduce((currentPart, part, partIndex) => {
+        const isFinalPart = partIndex === pathParts.length - 1;
+
+        // 处理属性名部分
+        if (/^\w+$/.test(part)) {
+          if (!currentPart.hasOwnProperty(part)) {
+            currentPart[part] = []; // 初始化数组
+          }
+          return currentPart[part];
+        }
+
+        // 处理数组索引
+        const indexMatch = part.match(INDEX_EXTRACT_REGEX);
+        const index = indexMatch ? parseInt(indexMatch[1], 10) : 0;
+        const shouldSetValue = isFinalPart && isFinalSegment;
+
+        // 初始化或设置值
+        if (!currentPart.hasOwnProperty(index)) {
+          currentPart[index] = shouldSetValue ? value : isFinalPart ? {} : [];
+        } else if (shouldSetValue && !skipIfExists) {
+          currentPart[index] = value;
+        }
+
+        return currentPart[index];
+      }, currentObj);
+    }
+
+    // 处理普通属性路径段
+    if (isFinalSegment) {
+      if (!skipIfExists || !currentObj.hasOwnProperty(segment)) {
+        currentObj[segment] = value;
+      }
+      return currentObj[segment];
+    }
+
+    if (!currentObj.hasOwnProperty(segment)) {
+      currentObj[segment] = {};
+    }
+    return currentObj[segment];
+  }, rootObject);
 }
 
 /**
