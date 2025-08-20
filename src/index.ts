@@ -35,6 +35,7 @@ export * from "./Constant";
 export * from "./Animate";
 export * from "./Blob";
 export * from "./Browser";
+export * from "./Canvas";
 export * from "./Element";
 export * from "./File";
 export * from "./Format";
