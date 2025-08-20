@@ -3,15 +3,6 @@ import { _Format_HrefName } from "../Format";
 import { DataType, Point } from "./type";
 
 /**
- * 是正常对象吗
- * @param {} value
- * @returns boolean
- */
-export function _Valid_IsObject(value: any) {
-  return !(value === null || typeof value !== "object" || Array.isArray(value));
-}
-
-/**
  * 检查单个一维数组参数是否合法（元素为有限数字）
  * @param arr - 待检查的数组
  * @param minLength - 数组最小长度 (默认2)
