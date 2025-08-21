@@ -24,18 +24,18 @@ function FlattenAll<T>(arr: any): T[] {
   return [arr].flat(Infinity) as T[];
 }
 
-// class b {
-//   b = 2;
-// }
-// class c {
-//   static B = b;
-//   c = 3;
-// }
-// const arr: InstanceType<(typeof c)["B"]>[] = [];
-// const b1 = new c.B();
-// arr.push(b1);
-
-/** 你好啊你好的画布工具 */
+/**
+ * 你好啊你好的画布工具类
+ * 提供图形绘制、动态渲染等画布相关功能，支持复杂场景下的可视化展示
+ *
+ * 使用示例:
+ * - GitHub演示:
+ *   - 基础画布: https://adminnhanh.github.io/nhanh-frontend-view/#/canvas/_Canvas
+ *   - 动态图表(月牙定理): https://adminnhanh.github.io/nhanh-frontend-view/#/math/DynamicDiagram/%E6%9C%88%E7%89%99%E5%AE%9A%E7%90%86
+ * - 阿里云演示:
+ *   - 基础画布: https://nhanh.xin/#/canvas/_Canvas
+ *   - 动态图表(月牙定理): https://nhanh.xin/#/math/DynamicDiagram/%E6%9C%88%E7%89%99%E5%AE%9A%E7%90%86
+ */
 export class _Canvas extends QuickMethod {
   /** 图层群组 */
   static LayerGroup = LayerGroup;

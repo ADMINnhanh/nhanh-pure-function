@@ -14,6 +14,17 @@ import type Overlay from "./OverlayGroup/public/overlay";
 // import type  Ellipse from "./OverlayGroup/ellipse";
 // import type  BezierCurve from "./OverlayGroup/bezierCurve";
 
+// class b {
+//   b = 2;
+// }
+// class c {
+//   static B = b;
+//   c = 3;
+// }
+// const arr: InstanceType<(typeof c)["B"]>[] = [];
+// const b1 = new c.B();
+// arr.push(b1);
+
 // let a :Overlay
 export type {
   //#region 集合
