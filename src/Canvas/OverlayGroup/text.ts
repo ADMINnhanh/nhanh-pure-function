@@ -165,3 +165,60 @@ export default class Text extends Overlay<TextStyleType, [number, number]> {
     }
   }
 }
+
+// 待实现
+
+// 绘制文本时文本的对齐方式
+// ctx.textAlign = "center";
+// 绘制文本时使用的文本基线
+// ctx.textBaseline = "middle";
+// 自定义单词间距：10px
+// ctx.wordSpacing = "10px";
+// 绘制文本时，描述当前文本方向。
+// ctx.direction = "rtl";
+
+/** 换行绘制文字 */
+function drawWrappedText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineSpacing = 1.1 // 行间距倍数（1.1表示增加10%间距）
+) {
+  if (!text) return;
+
+  // 循环查找当前行最大可显示长度（非递归版本，避免栈溢出）
+  let currentY = y;
+  let remainingText = text;
+
+  while (remainingText) {
+    let splitIndex = remainingText.length;
+
+    // 找到最大可显示的子串长度
+    for (let i = splitIndex; i > 0; i--) {
+      const subText = remainingText.substring(0, i);
+      const { width } = ctx.measureText(subText);
+
+      if (width <= maxWidth || i == 1) {
+        splitIndex = i;
+        break;
+      }
+    }
+
+    // 绘制当前行
+    const currentText = remainingText.substring(0, splitIndex);
+    ctx.strokeText(currentText, x, currentY);
+    ctx.fillText(currentText, x, currentY);
+
+    // 计算下一行Y坐标
+    const { fontBoundingBoxAscent, fontBoundingBoxDescent } =
+      ctx.measureText(currentText);
+    const lineHeight =
+      (fontBoundingBoxAscent + fontBoundingBoxDescent) * lineSpacing;
+    currentY += lineHeight;
+
+    // 处理剩余文本
+    remainingText = remainingText.substring(splitIndex);
+  }
+}
