@@ -23,6 +23,7 @@ export type DataType =
   | "promise"
   | "weakmap"
   | "weakset"
+  | "file"
   | "arraybuffer"
   | "dataview"
   | "int8array"

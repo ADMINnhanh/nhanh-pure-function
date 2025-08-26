@@ -170,3 +170,45 @@ export function _Math_GetBoundaryIntersection(
     ? startPoint
     : [startX + dirX * minT, startY + dirY * minT];
 }
+
+// 仅对需要角度参数的三角函数进行处理
+const trigonometricFunctions = new Set([
+  "sin",
+  "cos",
+  "tan",
+  "asin",
+  "acos",
+  "atan",
+  "atan2",
+]);
+
+/**
+ * 角度制数学工具代理
+ * 对于三角函数：自动将输入的角度转换为弧度
+ * 对于其他方法：直接调用原生Math方法
+ */
+export const _Math_Degree = new Proxy(Math, {
+  get(target, prop: keyof Math) {
+    // 处理三角函数：转换角度为弧度
+    if (trigonometricFunctions.has(prop as string)) {
+      return function (...args: number[]) {
+        const convertedArgs = args.map((v) => (v / 180) * Math.PI);
+        /** @ts-ignore */
+        return target[prop](...convertedArgs);
+      };
+    }
+
+    // 非三角函数：直接返回原生方法
+    return target[prop];
+  },
+
+  // 禁止修改属性
+  set() {
+    throw new Error("DegreeMath 是只读的，不能修改属性");
+  },
+
+  // 禁止删除属性
+  deleteProperty() {
+    throw new Error("DegreeMath 是只读的，不能删除属性");
+  },
+});

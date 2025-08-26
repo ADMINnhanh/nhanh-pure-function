@@ -445,6 +445,7 @@ export function _Utility_Clone<T>(val: T) {
       case "promise":
       case "weakmap":
       case "weakset":
+      case "file":
       default: {
         return value;
       }
