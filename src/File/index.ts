@@ -17,93 +17,96 @@ export function _File_Read(src: string): Promise<string> {
 }
 
 /**
- * 下载文件
- * @param {string} href - 文件路径
- * @param {string} [fileName] - 导出文件名
+ * 下载文件并支持进度监控、超时控制和主动中止
+ *
+ * @param {string} href - 文件的 URL 路径或下载地址，需确保跨域权限或同源
+ * @param {string} [fileName] - 可选，指定导出的文件名（不含扩展名时会自动从 href 提取）
+ * @param {Function} [onProgress] - 可选，下载进度回调函数
+ * @param {number} [onProgress.progress] - 进度百分比（0-100）
+ * @param {number} [timeout=30000] - 可选，超时时间（毫秒），默认 30 秒
+ * @returns {Object} 返回包含两个属性的对象：
+ *   - promise: Promise 对象，成功时 resolve 下载的 Blob 数据，失败时 reject 错误信息
+ *   - abort: 中止下载的函数，调用后会触发 abort 错误
  */
-export function _File_Download(href: string, fileName?: string) {
-  return new Promise((resolve, reject) => {
+export function _File_Download(
+  href: string,
+  fileName?: string,
+  onProgress?: (progress: number) => void,
+  timeout = 30000
+) {
+  let xhr: XMLHttpRequest;
+  let isAborted = false;
+
+  const promise = new Promise<Blob>((resolve, reject) => {
     try {
       fileName = fileName || _Format_HrefName(href, "downloaded_file");
-      fetch(href)
-        .then((response) => {
-          if (!response.ok) reject(`文件下载失败，状态码: ${response.status}`);
-          return response.blob();
-        })
-        .then((blob) => {
-          const url = URL.createObjectURL(blob);
+      const decodedFileName = decodeURIComponent(fileName);
+
+      xhr = new XMLHttpRequest();
+      xhr.open("GET", href);
+      xhr.responseType = "blob";
+      xhr.timeout = timeout;
+
+      // 超时处理
+      xhr.ontimeout = () => {
+        if (!isAborted) {
+          reject(new Error(`请求超时（已超过${timeout / 1000}秒）`));
+        }
+      };
+
+      // 进度监控
+      xhr.addEventListener("progress", (event) => {
+        if (event.lengthComputable && !isAborted) {
+          const progress = (event.loaded / event.total) * 100;
+          onProgress?.(Number(progress.toFixed(2)));
+        }
+      });
+
+      // 下载完成
+      xhr.addEventListener("load", () => {
+        if (isAborted) return;
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const url = URL.createObjectURL(xhr.response);
           const a = document.createElement("a");
           a.href = url;
-          a.download = decodeURIComponent(fileName!);
-          document.body.appendChild(a);
+          a.download = decodedFileName;
           a.click();
-          document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          resolve(blob);
-        })
-        .catch(reject);
+          resolve(xhr.response);
+        } else {
+          reject(new Error(`下载失败，状态码: ${xhr.status}`));
+        }
+      });
+
+      // 错误处理
+      xhr.addEventListener("error", () => {
+        if (!isAborted) {
+          reject(new Error("网络错误，下载失败"));
+        }
+      });
+
+      // 中止处理
+      xhr.addEventListener("abort", () => {
+        if (!isAborted) {
+          isAborted = true;
+          reject(new Error("下载已被中止"));
+        }
+      });
+
+      xhr.send();
     } catch (error) {
-      reject(error);
+      if (!isAborted) {
+        reject(error);
+      }
     }
   });
+
+  // 中止函数
+  const abort = () => !isAborted && xhr.abort();
+
+  return { promise, abort };
 }
-// function _File_Download1(
-//   href: string,
-//   fileName?: string,
-//   onProgress?: (progress: number) => void
-// ) {
-//   return new Promise((resolve, reject) => {
-//     try {
-//       // 处理文件名
-//       fileName = fileName || _Format_HrefName(href, "downloaded_file");
-//       const decodedFileName = decodeURIComponent(fileName);
-
-//       const xhr = new XMLHttpRequest();
-//       xhr.open("GET", href);
-//       // 设置响应类型为blob，适合二进制文件
-//       xhr.responseType = "blob";
-
-//       // 进度监控
-//       xhr.addEventListener("progress", (event) => {
-//         if (event.lengthComputable) {
-//           const progress = (event.loaded / event.total) * 100;
-//           onProgress?.(Number(progress.toFixed(2)));
-//         }
-//       });
-
-//       // 下载完成处理
-//       xhr.addEventListener("load", () => {
-//         if (xhr.status >= 200 && xhr.status < 300) {
-//           const url = URL.createObjectURL(xhr.response);
-//           const a = document.createElement("a");
-//           a.href = url;
-//           a.download = decodedFileName;
-
-//           // 不需要添加到body也能触发下载
-//           a.click();
-
-//           // 清理资源
-//           URL.revokeObjectURL(url);
-//           resolve(xhr.response);
-//         } else {
-//           reject(new Error(`下载失败，状态码: ${xhr.status}`));
-//         }
-//       });
-
-//       // 错误处理
-//       xhr.addEventListener("error", () =>
-//         reject(new Error("网络错误，下载失败"))
-//       );
-
-//       // 中断处理
-//       xhr.addEventListener("abort", () => reject(new Error("下载已被中断")));
-
-//       xhr.send();
-//     } catch (error) {
-//       reject(error);
-//     }
-//   });
-// }
 
 /**
  * 创建文件并下载
