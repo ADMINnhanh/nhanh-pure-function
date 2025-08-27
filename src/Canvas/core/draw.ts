@@ -181,11 +181,14 @@ export default class Draw extends Style {
     if (!this.redrawInNextRenderFrame) {
       this.redrawInNextRenderFrame = true;
       Promise.resolve().then(() => {
-        this.measureRedrawPerformance?.();
-        // this.isRendering = true;
-        // this.redraw();
-        // this.redrawInNextRenderFrame = false;
-        // this.isRendering = false;
+        if (import.meta.env.DEV) {
+          this.measureRedrawPerformance?.();
+        } else {
+          this.isRendering = true;
+          this.redraw();
+          this.redrawInNextRenderFrame = false;
+          this.isRendering = false;
+        }
       });
     }
   }
