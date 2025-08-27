@@ -180,8 +180,9 @@ export default class Draw extends Style {
   redrawOnce() {
     if (!this.redrawInNextRenderFrame) {
       this.redrawInNextRenderFrame = true;
+
       Promise.resolve().then(() => {
-        if (import.meta.env.DEV) {
+        if (import.meta.env.MODE === "development") {
           this.measureRedrawPerformance?.();
         } else {
           this.isRendering = true;
