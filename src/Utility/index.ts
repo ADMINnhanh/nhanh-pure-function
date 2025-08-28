@@ -18,7 +18,12 @@ export function _Utility_ExecuteWhenIdle(callback: Function) {
       requestIdleCallback(loop);
     else callback();
   };
-  requestIdleCallback(loop);
+
+  if (requestIdleCallback) requestIdleCallback(loop);
+  else {
+    requestAnimationFrame(() => callback());
+    console.warn("当前浏览器不支持requestIdleCallback");
+  }
 }
 
 /**
@@ -37,7 +42,9 @@ export function _Utility_WaitForCondition(
       const nowTime = +new Date();
       if (nowTime - startTime >= timeoutMillis) return reject("超时");
       if (conditionChecker()) return resolve("完成");
-      requestIdleCallback(checkCondition);
+
+      if (requestIdleCallback) requestIdleCallback(checkCondition);
+      else requestAnimationFrame(checkCondition);
     };
     checkCondition();
   });
