@@ -19,29 +19,57 @@ export function _File_Read(src: string): Promise<string> {
 /**
  * 下载文件并支持进度监控、超时控制和主动中止
  *
- * @param {string} href - 文件的 URL 路径或下载地址，需确保跨域权限或同源
- * @param {string} [fileName] - 可选，指定导出的文件名（不含扩展名时会自动从 href 提取）
- * @param {Function} [onProgress] - 可选，下载进度回调函数
- * @param {number} [onProgress.progress] - 进度百分比（0-100）
- * @param {number} [timeout=30000] - 可选，超时时间（毫秒），默认 30 秒
- * @returns {Object} 返回包含两个属性的对象：
+ * @param {Object} options - 下载配置选项
+ * @param {string} options.href - 文件的 URL 路径或下载地址，需确保跨域权限或同源
+ * @param {string} [options.fileName] - 可选，指定导出的文件名（不含扩展名时会自动从 href 提取）
+ * @param {Function} [options.onProgress] - 可选，下载进度回调函数
+ * @param {number} [options.onProgress.progress] - 进度百分比（0-100）
+ * @param {number} [options.timeout=30000] - 可选，超时时间（毫秒），默认 30 秒
+ * @param {boolean} [options.autoDownload=true] - 可选，是否自动执行下载操作，默认 true
+ * @returns {Object} 返回包含以下属性的对象：
  *   - promise: Promise 对象，成功时 resolve 下载的 Blob 数据，失败时 reject 错误信息
  *   - abort: 中止下载的函数，调用后会触发 abort 错误
+ *   - download: 手动执行下载的函数（当 autoDownload 为 false 时使用）
  */
-export function _File_Download(
-  href: string,
-  fileName?: string,
-  onProgress?: (progress: number) => void,
-  timeout = 30000
-) {
+export function _File_Download(options: {
+  href: string;
+  fileName?: string;
+  onProgress?: (progress: number) => void;
+  timeout?: number;
+  autoDownload?: boolean;
+}) {
+  const {
+    href,
+    fileName,
+    onProgress,
+    timeout = 30000,
+    autoDownload = true,
+  } = options;
+
   let xhr: XMLHttpRequest;
   let isAborted = false;
+  let responseBlob: Blob | null = null;
+  let decodedFileName: string;
+
+  // 处理文件名
+  const processedFileName =
+    fileName || _Format_HrefName(href, "downloaded_file");
+  decodedFileName = decodeURIComponent(processedFileName);
+
+  // 执行下载操作的内部方法
+  const executeDownload = () => {
+    if (!responseBlob) return;
+
+    const url = URL.createObjectURL(responseBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = decodedFileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const promise = new Promise<Blob>((resolve, reject) => {
     try {
-      fileName = fileName || _Format_HrefName(href, "downloaded_file");
-      const decodedFileName = decodeURIComponent(fileName);
-
       xhr = new XMLHttpRequest();
       xhr.open("GET", href);
       xhr.responseType = "blob";
@@ -67,12 +95,11 @@ export function _File_Download(
         if (isAborted) return;
 
         if (xhr.status >= 200 && xhr.status < 300) {
-          const url = URL.createObjectURL(xhr.response);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = decodedFileName;
-          a.click();
-          URL.revokeObjectURL(url);
+          responseBlob = xhr.response;
+          // 自动下载
+          if (autoDownload) {
+            executeDownload();
+          }
           resolve(xhr.response);
         } else {
           reject(new Error(`下载失败，状态码: ${xhr.status}`));
@@ -105,7 +132,14 @@ export function _File_Download(
   // 中止函数
   const abort = () => !isAborted && xhr.abort();
 
-  return { promise, abort };
+  // 手动执行下载的函数
+  const download = () => {
+    if (!isAborted && responseBlob) {
+      executeDownload();
+    }
+  };
+
+  return { promise, abort, download };
 }
 
 /**
@@ -126,7 +160,7 @@ export function _File_CreateAndDownload(
   }
   const bolb = new Blob(content, options);
   // 创建一个 URL，该 URL 可以用于在浏览器中引用 Blob 对象（例如，在 <a> 标签的 href 属性中）
-  const url = URL.createObjectURL(bolb);
+  const href = URL.createObjectURL(bolb);
 
-  _File_Download(url, fileName);
+  _File_Download({ href, fileName });
 }
