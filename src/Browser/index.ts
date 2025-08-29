@@ -16,14 +16,14 @@ export function _Browser_GetFrameRate(
       l--;
       requestAnimationFrame(loop);
     } else {
-      const time = +new Date() - t;
+      const time = Date.now() - t;
       const frameTime = time / referenceNode;
       const fps = 1000 / frameTime;
       callback(Number(fps.toFixed(2)), Number(frameTime.toFixed(2)));
     }
   }
   requestAnimationFrame(() => {
-    t = +new Date();
+    t = Date.now();
     loop();
   });
 }

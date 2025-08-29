@@ -9,21 +9,21 @@ import {
 /**
  * 寻找空闲时机执行传入方法
  * @param callback  需执行的方法
+ * @param timeout 超时时间
  */
-export function _Utility_ExecuteWhenIdle(callback: Function) {
+export function _Utility_ExecuteWhenIdle(callback: Function, timeout = 3000) {
   if (typeof callback !== "function")
     return console.error("非函数：", callback);
+
+  const requestIdleCallback = window.requestIdleCallback;
   const loop = function (deadline: IdleDeadline) {
-    if (deadline.didTimeout || deadline.timeRemaining() <= 0)
-      requestIdleCallback(loop);
+    if (deadline.timeRemaining() <= 0 && !deadline.didTimeout)
+      requestIdleCallback(loop, { timeout });
     else callback();
   };
 
-  if (requestIdleCallback) requestIdleCallback(loop);
-  else {
-    requestAnimationFrame(() => callback());
-    console.warn("当前浏览器不支持requestIdleCallback");
-  }
+  if (requestIdleCallback) requestIdleCallback(loop, { timeout });
+  else requestAnimationFrame(() => callback());
 }
 
 /**
@@ -36,15 +36,14 @@ export function _Utility_WaitForCondition(
   conditionChecker: () => boolean,
   timeoutMillis: number
 ): Promise<"完成" | "超时"> {
-  const startTime = +new Date();
+  const startTime = Date.now();
   return new Promise((resolve, reject) => {
     const checkCondition = () => {
-      const nowTime = +new Date();
+      const nowTime = Date.now();
       if (nowTime - startTime >= timeoutMillis) return reject("超时");
       if (conditionChecker()) return resolve("完成");
 
-      if (requestIdleCallback) requestIdleCallback(checkCondition);
-      else requestAnimationFrame(checkCondition);
+      requestAnimationFrame(checkCondition);
     };
     checkCondition();
   });
@@ -60,10 +59,10 @@ export function _Utility_MergeObjects<T, T1>(
   A: T,
   B: T1,
   visitedObjects: [any, any][] = [],
-  outTime = +new Date()
+  outTime = Date.now()
 ): (T & T1) | T | T1 | undefined {
   /** 疑似死循环 */
-  if (outTime < +new Date() - 50) {
+  if (outTime < Date.now() - 50) {
     console.error("_MergeObjects 合并异常：疑似死循环");
     return undefined;
   }
