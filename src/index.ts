@@ -40,6 +40,7 @@ export * from "./Element";
 export * from "./File";
 export * from "./Format";
 export * from "./Math";
+export * from "./Types";
 export * from "./Utility";
 export * from "./Valid";
 
