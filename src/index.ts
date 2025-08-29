@@ -29,6 +29,8 @@
 //   .join("\n");
 // console.log("当前目录下的文件夹:\n", folders);
 
+// npm publish --tag beta
+
 import "./index.less";
 export * from "./Constant";
 
