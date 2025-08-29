@@ -39,8 +39,7 @@ export function _Utility_WaitForCondition(
   const startTime = Date.now();
   return new Promise((resolve, reject) => {
     const checkCondition = () => {
-      const nowTime = Date.now();
-      if (nowTime - startTime >= timeoutMillis) return reject("超时");
+      if (Date.now() - startTime >= timeoutMillis) return reject("超时");
       if (conditionChecker()) return resolve("完成");
 
       requestAnimationFrame(checkCondition);
