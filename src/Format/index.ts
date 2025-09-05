@@ -230,3 +230,40 @@ export function _Format_ExcludeSubstring(
     return $1 === $2 ? delimiter : "";
   });
 }
+
+/**
+ * 处理不可见字符的转义和还原
+ * @param {string} str - 要处理的字符串
+ * @param {boolean} escape - true表示转义（默认），false表示还原
+ * @returns {string} 处理后的字符串
+ */
+export function _Format_ToggleInvisibleChars(str: string, escape = true) {
+  // 转义映射表
+  const escapeMap = {
+    "\b": "\\b",
+    "\t": "\\t",
+    "\n": "\\n",
+    "\v": "\\v",
+    "\f": "\\f",
+    "\r": "\\r",
+    " ": "\\s",
+  } as const;
+
+  // 还原映射表（反转转义映射）
+  const unescapeMap = Object.fromEntries(
+    Object.entries(escapeMap).map(([key, value]) => [value, key])
+  );
+
+  if (escape) {
+    // 转义模式：将不可见字符转为转义序列
+    return str.replace(
+      /[\b\t\n\v\f\r ]/g,
+      (match) => escapeMap[match as keyof typeof escapeMap]
+    );
+  } else {
+    // 还原模式：将转义序列转为实际字符
+    return str.replace(/\\[btnvfrs]/g, (match) => {
+      return unescapeMap[match] || match; // 找不到对应项则保留原字符
+    });
+  }
+}
