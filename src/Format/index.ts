@@ -267,3 +267,71 @@ export function _Format_ToggleInvisibleChars(str: string, escape = true) {
     });
   }
 }
+
+// 时间单位配置：[单位名称, 1单位对应的毫秒数]，按从大到小排序
+const UnitConfigs = [
+  ["年", 365 * 24 * 60 * 60 * 1000],
+  ["月", 30 * 24 * 60 * 60 * 1000],
+  ["周", 7 * 24 * 60 * 60 * 1000],
+  ["天", 24 * 60 * 60 * 1000],
+  ["时", 60 * 60 * 1000],
+  ["分", 60 * 1000],
+  ["秒", 1000],
+  ["毫秒", 1],
+] as const;
+
+// 提取单位名称类型，用于参数约束
+type UnitName = (typeof UnitConfigs)[number][0];
+
+/**
+ * 格式化毫秒数为易读的时间单位（基于固定换算规则）
+ * @param ms 待格式化的毫秒数（需为非负整数）
+ * @param maxUnit 最大单位限制（可选，如传入"天"则最大只显示到天，不显示年/月/周）
+ *                可选值："年"|"月"|"周"|"天"|"时"|"分"|"秒"|"毫秒"
+ * @returns 格式化后的时间字符串（如 1.3秒、300毫秒、1,234年）
+ * @description
+ *  1. 单位换算规则（固定值，非自然时间）：
+ *     - 1年 = 365天（忽略闰年差异）
+ *     - 1月 = 30天（忽略实际月份天数差异）
+ *     - 1周 = 7天，1天 = 24小时，1小时 = 60分钟，1分钟 = 60秒，1秒 = 1000毫秒
+ *  2. 格式化逻辑：
+ *     - 自动匹配不超过最大单位限制的最优单位（数值≥单位阈值时使用该单位）
+ *     - 非整数数值保留1位小数（如1.3秒），整数自动去除末尾.0（如1秒而非1.0秒）
+ *     - "年"单位数值会自动应用千分位格式化（如1,234年）
+ *  3. 输入校验：非整数或负数会返回"0毫秒"
+ */
+export function _Format_MillisecondToReadable(ms: number, maxUnit?: UnitName) {
+  // 校验输入：若为非整数或负数，返回0毫秒
+  if (!Number.isInteger(ms) || ms < 0) return "0毫秒";
+
+  // 找到最大单位的索引（无限制时为0，有则取对应单位索引）
+  const maxIndex = maxUnit
+    ? UnitConfigs.findIndex(([name]) => name === maxUnit)
+    : 0;
+
+  // 如果传入的最大单位不存在，默认不限制
+  const effectiveMaxIndex = maxIndex === -1 ? 0 : maxIndex;
+
+  // 遍历单位，从最大允许单位开始匹配（不超过限制的最大单位）
+  for (let i = effectiveMaxIndex; i < UnitConfigs.length; i++) {
+    const [unitName, unitMs] = UnitConfigs[i];
+    if (ms >= unitMs) {
+      // 计算单位数值：毫秒单位取整数，其他单位保留1位小数（四舍五入）
+      const value = unitMs === 1 ? ms : Math.round((ms / unitMs) * 10) / 10;
+
+      // 格式化数值：移除末尾.0，年单位使用千分位
+      let formattedValue: string | number = Number.isInteger(value)
+        ? value
+        : value.toFixed(1).replace(/\.0$/, "");
+
+      if (unitName === UnitConfigs[effectiveMaxIndex][0]) {
+        formattedValue = _Format_NumberWithCommas(Number(formattedValue));
+      }
+
+      return `${formattedValue}${unitName}`;
+    }
+  }
+
+  // 兜底返回（理论上不会触发）
+  return "0毫秒";
+}
