@@ -335,3 +335,29 @@ export function _Format_MillisecondToReadable(ms: number, maxUnit?: UnitName) {
   // 兜底返回（理论上不会触发）
   return "0毫秒";
 }
+
+/**
+ * 将数组按指定长度分割成多个子数组
+ * @param arr 要分割的原始数组
+ * @param size 每个子数组的长度
+ * @returns 分割后的二维数组
+ * @throws 当size小于1时抛出错误
+ */
+export function _Format_ChunkArray<T>(arr: T[], size: number): T[][] {
+  // 校验参数合法性
+  if (size < 1) {
+    throw new Error("分割大小必须大于0");
+  }
+
+  // 初始化结果数组
+  const result: T[][] = [];
+
+  // 遍历原始数组，按size分割
+  for (let i = 0; i < arr.length; i += size) {
+    // 从当前索引开始，截取size长度的子数组
+    const chunk = arr.slice(i, i + size);
+    result.push(chunk);
+  }
+
+  return result;
+}
