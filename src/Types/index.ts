@@ -34,6 +34,11 @@ export type _Type_DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
+/**
+ * @template T - 要处理的对象类型
+ * @description 创建一个对象类型，将所有属性变为可变（mutable）。
+ *              适用于需要修改对象属性的场景，但需要确保对象不会被其他地方引用
+ */
 export type _Type_Mutable<T> = {
   -readonly [P in keyof T]: T[P];
 };
