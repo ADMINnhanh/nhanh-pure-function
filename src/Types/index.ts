@@ -8,7 +8,7 @@
  * type RequiredName = RequiredBy<User, 'name'>
  * // 结果：{ name: string; age?: number; id: string }
  */
-export type RequiredBy<T, K extends keyof T> = Required<Pick<T, K>> &
+export type _Type_RequiredBy<T, K extends keyof T> = Required<Pick<T, K>> &
   Omit<T, K>;
 
 /**
@@ -21,7 +21,8 @@ export type RequiredBy<T, K extends keyof T> = Required<Pick<T, K>> &
  * type OptionalAge = PartialBy<User, 'age'>
  * // 结果：{ name: string; age?: number; id?: string }
  */
-export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type _Type_PartialBy<T, K extends keyof T> = Omit<T, K> &
+  Partial<Pick<T, K>>;
 
 /**
  * 递归将类型T的所有属性（包括嵌套对象的属性）转为可选
@@ -29,6 +30,10 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
  * @description 与TypeScript内置的Partial不同，DeepPartial会对嵌套对象进行递归处理，
  *              使所有层级的属性都变为可选。适用于需要部分更新对象且允许深层属性缺失的场景
  */
-export type DeepPartial<T> = {
+export type _Type_DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+export type _Type_Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
 };
