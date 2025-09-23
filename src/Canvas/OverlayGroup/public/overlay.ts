@@ -6,13 +6,14 @@ import {
   _Valid_Is2DNumberArray,
   _Utility_Clone,
   _Valid_IsNumberArray,
+  _Type_DeepPartial,
 } from "../../..";
 
 type ConstructorOption<T, V> = ConstructorParameters<
   typeof EventController
 >[0] & {
   /** 样式 */
-  style?: DeepPartial<T> | string;
+  style?: _Type_DeepPartial<T> | string;
   /** 层级 */
   zIndex?: number;
   /** 坐标轴上的点位 */
@@ -33,7 +34,7 @@ export default abstract class Overlay<
 > extends EventController {
   static ctx = document.createElement("canvas").getContext("2d")!;
 
-  private _style?: DeepPartial<T> | string;
+  private _style?: _Type_DeepPartial<T> | string;
   /** 样式 */
   get style() {
     return this._style;
@@ -166,7 +167,7 @@ export default abstract class Overlay<
       value?: V;
       dynamicPosition?: V;
       zIndex?: number;
-      style?: DeepPartial<T> | string;
+      style?: _Type_DeepPartial<T> | string;
     },
     updateValueScope?: boolean
   ) {

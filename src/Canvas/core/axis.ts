@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
 import type Canvas from "..";
-import { _Format_NumberWithCommas } from "../..";
+import { _Format_NumberWithCommas, _Type_DeepPartial } from "../..";
 
 export default class Axis {
   /** 画布 */
@@ -35,7 +35,7 @@ export default class Axis {
   }
 
   /** 开关坐标轴 */
-  toggleAxis(show?: boolean | DeepPartial<Axis["show"]>) {
+  toggleAxis(show?: boolean | _Type_DeepPartial<Axis["show"]>) {
     // 统一处理配置
     const newState = (() => {
       // 对象配置：未传的属性用默认值 true

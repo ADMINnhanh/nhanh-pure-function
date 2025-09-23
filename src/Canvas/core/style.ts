@@ -1,4 +1,8 @@
-import { _Utility_Clone, _Utility_MergeObjects } from "../..";
+import {
+  _Type_DeepPartial,
+  _Utility_Clone,
+  _Utility_MergeObjects,
+} from "../..";
 import BaseData from "./basedata";
 
 type ConstructorOption = ConstructorParameters<typeof BaseData>[0] & {
@@ -246,7 +250,7 @@ export default class Style extends BaseData {
     }
   }
   /** 设置样式 */
-  setStyle(style: DeepPartial<StyleType>) {
+  setStyle(style: _Type_DeepPartial<StyleType>) {
     for (const key in style) {
       if (Object.prototype.hasOwnProperty.call(style, key)) {
         const oldStyle = _Utility_Clone(

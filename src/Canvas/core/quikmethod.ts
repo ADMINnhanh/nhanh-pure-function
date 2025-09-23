@@ -1,4 +1,4 @@
-import { _Animate_Schedule } from "../..";
+import { _Animate_Schedule, _Type_DeepPartial } from "../..";
 import Axis from "./axis";
 import Event from "./event";
 import OverlayGroup, { type OverlayType } from "../OverlayGroup";
@@ -93,7 +93,7 @@ class QuickMethod_Set extends QuickMethod_Get {
     this.zoom(-this.delta);
   }
   /** 添加样式 */
-  setStyle(style: DeepPartial<StyleType>) {
+  setStyle(style: _Type_DeepPartial<StyleType>) {
     super.setStyle(style);
     this.redrawOnce();
   }
@@ -472,7 +472,7 @@ class QuickMethod_View extends QuickMethod_Set {
 }
 class QuickMethod_Toggle extends QuickMethod_View {
   /** 开关坐标轴 */
-  toggleAxis(show?: boolean | DeepPartial<Axis["show"]>) {
+  toggleAxis(show?: boolean | _Type_DeepPartial<Axis["show"]>) {
     this.drawAxis.toggleAxis(show);
     this.redrawOnce();
   }

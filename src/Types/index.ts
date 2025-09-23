@@ -31,7 +31,7 @@ export type _Type_PartialBy<T, K extends keyof T> = Omit<T, K> &
  *              使所有层级的属性都变为可选。适用于需要部分更新对象且允许深层属性缺失的场景
  */
 export type _Type_DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+  [P in keyof T]?: T[P] extends object ? _Type_DeepPartial<T[P]> : T[P];
 };
 
 /**
