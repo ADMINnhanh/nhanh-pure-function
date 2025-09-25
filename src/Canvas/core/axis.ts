@@ -8,7 +8,7 @@ export default class Axis {
 
   private axis_canvas = document.createElement("canvas");
   private ctx = this.axis_canvas.getContext("2d")!;
-  private isReload = false;
+  private isReload = true;
 
   /** 网格开关 */
   show = {
