@@ -5,9 +5,11 @@ import { _Format_NumberWithCommas, _Type_DeepPartial } from "../..";
 export default class Axis {
   /** 画布 */
   private canvas: Canvas;
-
+  /** 轴画布 */
   private axis_canvas = document.createElement("canvas");
+  /** 轴画布上下文 */
   private ctx = this.axis_canvas.getContext("2d")!;
+  /** 是否重新绘制轴 */
   private isReload = true;
 
   /** 网格开关 */
