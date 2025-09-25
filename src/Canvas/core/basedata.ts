@@ -128,6 +128,7 @@ export default class BaseData extends EventController {
     const { id, axisConfig, defaultCenter, offset, defaultScale } = option;
 
     const canvas = document.getElementById(id);
+
     if (canvas instanceof HTMLCanvasElement) {
       if (canvas.getContext) {
         this.canvas = canvas;
