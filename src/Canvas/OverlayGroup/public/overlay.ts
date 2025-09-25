@@ -8,6 +8,7 @@ import {
   _Valid_IsNumberArray,
   _Type_DeepPartial,
 } from "../../..";
+import { BaseLineStyle, PointStyleType } from "../../common.type";
 
 type ConstructorOption<T, V> = ConstructorParameters<
   typeof EventController

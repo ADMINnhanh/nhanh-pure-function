@@ -3,6 +3,7 @@ import {
   _Utility_Clone,
   _Utility_MergeObjects,
 } from "../..";
+import { KnownStyleKeys, StyleItemType, StyleType } from "../common.type";
 import BaseData from "./basedata";
 
 type ConstructorOption = ConstructorParameters<typeof BaseData>[0] & {

@@ -5,6 +5,7 @@ import OverlayGroup, { type OverlayType } from "../OverlayGroup";
 import Decimal from "decimal.js";
 import LayerGroup from "../LayerGroup";
 import Layer from "../LayerGroup/layer";
+import { KnownStyleKeys, StyleType } from "../common.type";
 
 // 定义基础节点类型
 type NodeType = LayerGroup | Layer | OverlayGroup | OverlayType;

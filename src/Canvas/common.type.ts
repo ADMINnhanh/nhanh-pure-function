@@ -1,15 +1,16 @@
 /** 默认中心点 */
-type DefaultCenter = Partial<{
+
+export type DefaultCenter = Partial<{
   top: number | `${number}%` | "top" | "middle" | "bottom";
   bottom: number | `${number}%`;
   left: number | `${number}%` | "left" | "center" | "right";
   right: number | `${number}%`;
 }>;
 
-type KnownStyleKeys = "light" | "dark";
+export type KnownStyleKeys = "light" | "dark";
 
 /** 文本样式 */
-type TextStyleType = {
+export type TextStyleType = {
   /** 颜色 */
   color: string;
   /** secondary颜色 */
@@ -25,14 +26,14 @@ type TextStyleType = {
 };
 
 /** 网格样式 */
-type GridStyleType = {
+export type GridStyleType = {
   axis: string;
   grid: string;
   innerGrid: string;
 };
 
 /** 点位样式 */
-type PointStyleType = {
+export type PointStyleType = {
   /** 半径 */
   radius: number;
   /** 边框颜色 */
@@ -44,7 +45,7 @@ type PointStyleType = {
 };
 
 /** 基础线样式 */
-type BaseLineStyle = {
+export type BaseLineStyle = {
   /** 颜色 */
   color: string;
   /** 颜色 - hover */
@@ -64,7 +65,7 @@ type BaseLineStyle = {
 };
 
 /** 线样式 */
-type LineStyleType = {
+export type LineStyleType = {
   /** 描边 */
   stroke: BaseLineStyle;
   /** 点位样式 */
@@ -72,7 +73,7 @@ type LineStyleType = {
 };
 
 /** 圆弧样式 */
-type ArcStyleType = {
+export type ArcStyleType = {
   /** 填充色 */
   fill: string;
   /** 填充色 - hover */
@@ -83,7 +84,7 @@ type ArcStyleType = {
   point: PointStyleType;
 };
 /** 圆角样式 */
-type ArcToStyleType = {
+export type ArcToStyleType = {
   /** 描边 */
   stroke: BaseLineStyle;
   /** 点位样式 */
@@ -91,7 +92,7 @@ type ArcToStyleType = {
 };
 
 /** 面样式 */
-type PolygonStyleType = {
+export type PolygonStyleType = {
   /** 填充色 */
   fill: string;
   /** 填充色 - hover */
@@ -103,7 +104,7 @@ type PolygonStyleType = {
 };
 
 /** 主题样式 */
-type StyleItemType = {
+export type StyleItemType = {
   /** 背景色 */
   background: string;
   /** 文本样式 */
@@ -123,8 +124,8 @@ type StyleItemType = {
 };
 
 /** 主题样式 */
-type StyleType = Record<KnownStyleKeys, StyleItemType> &
+export type StyleType = Record<KnownStyleKeys, StyleItemType> &
   Record<string, StyleItemType>;
 
 // 递归定义任意层级的OverlayType嵌套数组
-type DeepArray<T> = T | T[] | DeepArray<T>[];
+export type DeepArray<T> = T | T[] | DeepArray<T>[];

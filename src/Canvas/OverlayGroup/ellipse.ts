@@ -4,6 +4,7 @@ import Overlay from "./public/overlay";
 import { type OverlayType } from "./index";
 import Point from "./point";
 import type { EventHandler } from "../public/eventController";
+import { ArcStyleType } from "../common.type";
 
 type ConstructorOption = ConstructorParameters<
   typeof Overlay<ArcStyleType, [number, number][]>

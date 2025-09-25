@@ -2,6 +2,7 @@ import Axis from "./axis";
 import LayerGroup from "../LayerGroup";
 import Decimal from "decimal.js";
 import EventController from "../public/eventController";
+import { DefaultCenter } from "../common.type";
 
 type ConstructorOption = ConstructorParameters<typeof EventController>[0] & {
   /** 画布 id */

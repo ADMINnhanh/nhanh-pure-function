@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import dts from "vite-plugin-dts";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
+import checker from "vite-plugin-checker";
 
 export default defineConfig({
   // 配置 TypeScript 路径别名
@@ -9,6 +10,10 @@ export default defineConfig({
     tsconfigPaths(),
     dts({
       insertTypesEntry: true, // 插入类型入口
+    }),
+    checker({
+      // 在这里配置你想要的检查工具
+      typescript: true, // 启用 TypeScript 检查
     }),
     cssInjectedByJsPlugin(), // 将 CSS 注入到 JS 中
   ],

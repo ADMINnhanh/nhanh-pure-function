@@ -3,6 +3,7 @@ import _Canvas from "..";
 import Overlay from "./public/overlay";
 import { type OverlayType } from "./index";
 import GeometricBoundary from "./public/geometricBoundary";
+import { LineStyleType } from "../common.type";
 
 type ConstructorOption = ConstructorParameters<
   typeof GeometricBoundary<LineStyleType>

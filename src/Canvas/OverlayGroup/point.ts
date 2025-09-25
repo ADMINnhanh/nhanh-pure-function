@@ -4,6 +4,7 @@ import { type OverlayType } from "./index";
 import { _Valid_IsNumberArray, _Animate_Schedule } from "../..";
 import type { EventHandler } from "../public/eventController";
 import { _Number } from "../public/tools";
+import { PointStyleType } from "../common.type";
 
 type ConstructorOption = ConstructorParameters<
   typeof Overlay<PointStyleType, [number, number]>

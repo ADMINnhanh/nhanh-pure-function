@@ -12,6 +12,7 @@ import Axis from "./core/axis";
 import Custom from "./OverlayGroup/custom";
 import Arc from "./OverlayGroup/arc";
 import ArcTo from "./OverlayGroup/arcTo";
+import { DeepArray } from "./common.type";
 // import Ellipse from "./OverlayGroup/ellipse";
 // import BezierCurve from "./OverlayGroup/bezierCurve";
 
