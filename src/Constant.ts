@@ -327,8 +327,5 @@ export const PAPER_SIZE_DEFINITIONS = {
 export type PaperType = keyof typeof PAPER_SIZE_DEFINITIONS;
 /** 纸张尺寸列表 */
 export const PAPER_SIZE_OPTIONS = Object.keys(PAPER_SIZE_DEFINITIONS).map(
-  (key) => ({
-    value: key,
-    label: key,
-  })
+  (key) => ({ value: key, label: key })
 );

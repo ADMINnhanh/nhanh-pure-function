@@ -204,7 +204,7 @@ export function _Browser_CalculatePrintableArea(
 ) {
   // 获取纸张基础尺寸
   const paper = PAPER_SIZE_DEFINITIONS[type];
-  if (!paper) throw new Error(`未知纸张类型: ${type}`);
+  if (!paper) return console.error(`未知纸张类型: ${type}`);
 
   const { width: paperWidthMM, height: paperHeightMM } = paper;
 

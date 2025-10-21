@@ -346,7 +346,8 @@ export function _Format_MillisecondToReadable(ms: number, maxUnit?: UnitName) {
 export function _Format_ChunkArray<T>(arr: T[], size: number): T[][] {
   // 校验参数合法性
   if (size < 1) {
-    throw new Error("分割大小必须大于0");
+    console.error("分割大小必须大于0");
+    return [];
   }
 
   // 初始化结果数组

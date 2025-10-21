@@ -30,17 +30,18 @@ export function _Utility_ExecuteWhenIdle(callback: Function, timeout = 3000) {
  * 等待条件满足
  * @param conditionChecker 条件检查器
  * @param timeoutMillis 超时毫秒数
- * @returns Promise<unknown>
+ * @returns Promise<number> 耗时
  */
 export function _Utility_WaitForCondition(
   conditionChecker: () => boolean,
   timeoutMillis: number
-): Promise<"完成" | "超时"> {
+): Promise<number> {
   const startTime = Date.now();
   return new Promise((resolve, reject) => {
     const checkCondition = () => {
-      if (Date.now() - startTime >= timeoutMillis) return reject("超时");
-      if (conditionChecker()) return resolve("完成");
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime >= timeoutMillis) return reject(elapsedTime);
+      if (conditionChecker()) return resolve(elapsedTime);
 
       requestAnimationFrame(checkCondition);
     };
