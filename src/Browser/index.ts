@@ -1,4 +1,5 @@
 import { PAPER_SIZE_DEFINITIONS, PaperType, WindowTarget } from "../Constant";
+import { _Utility_GenerateUUID, _Utility_WaitForCondition } from "../Utility";
 
 /**
  * 获取帧率
@@ -109,9 +110,61 @@ export class _Browser_KeyedWindowManager {
   /** 请使用静态方法 */
   private constructor() {}
 
-  /** 添加已有窗口 */
-  static add(key: string, win: Window) {
-    this.keys.set(key, win);
+  /** 获取键值对管理器的唯一标识符 */
+  static Get_KeyedWindowManager = Symbol.for("_Browser_KeyedWindowManager");
+
+  /**
+   * 初始化
+   * @param name 窗口名称
+   */
+  static init(name: string) {
+    this.keys.set(name, window);
+    window.name = name;
+    (window as any)[this.Get_KeyedWindowManager] = () => this;
+
+    /** 获取 opener 的实例 */
+    const manager: typeof _Browser_KeyedWindowManager = (
+      window.opener as any
+    )?.[this.Get_KeyedWindowManager]?.();
+    /** 使用 opener 同步所有可访问的窗口 */
+    manager?.notify();
+  }
+
+  /**
+   * 更新窗口管理器
+   * @param self 最新实例
+   */
+  static update(self: typeof _Browser_KeyedWindowManager) {
+    self.keys.forEach((win, key) => {
+      if (window.name == key) return;
+      this.keys.set(key, win);
+    });
+  }
+
+  /**
+   * 通知所有窗口 同步所以可访问的窗口
+   */
+  static notify() {
+    this.keys.forEach((win, key) => {
+      // 如果窗口已关闭，应该清理
+      if (win.closed) {
+        this.keys.delete(key); // 需要key信息
+        return;
+      }
+      const manager: typeof _Browser_KeyedWindowManager = (win as any)[
+        this.Get_KeyedWindowManager
+      ]?.();
+      manager?.update(this);
+    });
+  }
+
+  /**
+   * 检查窗口的 opener 是否与当前页面同源
+   * @param win 窗口对象
+   * @returns 如果 opener 与当前页面同源则返回true，否则返回false
+   */
+  static isSameOrigin(url?: string | URL) {
+    return url && new URL(url).origin === location.origin;
   }
 
   /**
@@ -128,11 +181,19 @@ export class _Browser_KeyedWindowManager {
     target?: WindowTarget,
     windowFeatures?: string
   ) {
+    if (this.keys.size == 0) {
+      return console.error(
+        "请先使用 _Browser_KeyedWindowManager.init 方法进行初始化"
+      );
+    }
+
     const win = this.keys.get(key);
     if (win && !win.closed) {
-      win.focus();
+      if (win.name) open("javascript:;", win.name);
+      else win.focus();
+
       return win;
-    } else {
+    } else if (this.isSameOrigin(url)) {
       const newWin = window.open(url, target, windowFeatures);
       if (newWin) {
         this.keys.set(key, newWin);
@@ -140,7 +201,10 @@ export class _Browser_KeyedWindowManager {
       } else {
         console.error("window.open failed: 可能是浏览器阻止了弹出窗口");
         this.keys.delete(key);
+        this.notify();
       }
+    } else {
+      console.error(`"${url}" 不符合同源策略，仅能管理同源标签页`);
     }
   }
 
@@ -173,6 +237,7 @@ export class _Browser_KeyedWindowManager {
     if (win) {
       win.close();
       this.keys.delete(key);
+      this.notify();
     }
   }
 
