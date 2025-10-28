@@ -150,6 +150,11 @@ export class _Tip {
   static error = _Tip.rejectTip("error");
 }
 
+// /** 测试代码 */
+// export const _Test = 22333;
+// /** 测试代码 2 */
+// export const _Test2 = 22333;
+
 // const messageTypes = ["info", "warning", "success", "error"] as const;
 // messageTypes.forEach((type) => {
 //   /** @ts-ignore */

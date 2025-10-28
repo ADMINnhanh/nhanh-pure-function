@@ -464,7 +464,7 @@ export function _Utility_Clone<T>(val: T) {
     return oldClone ? oldClone(val) : deepClone(val);
   } catch (error) {
     // 使用日志系统或其他方式记录错误信息
-    console.error("structuredClone error:", error);
+    console.warn("structuredClone error:", error);
     // @ts-ignore 如果oldClone存在且之前的尝试失败，则再次使用deepClone方法尝试克隆
     return oldClone && deepClone(val);
   }

@@ -101,156 +101,6 @@ export function _Browser_CopyToClipboard(text: string) {
 }
 
 /**
- * 管理通过键值对打开的窗口
- */
-export class _Browser_KeyedWindowManager {
-  // 存储键与对应窗口的Map
-  private static keys = new Map<string, Window>();
-
-  /** 请使用静态方法 */
-  private constructor() {}
-
-  /** 获取键值对管理器的唯一标识符 */
-  static Get_KeyedWindowManager = Symbol.for("_Browser_KeyedWindowManager");
-
-  /**
-   * 初始化
-   * @param name 窗口名称
-   */
-  static init(name: string) {
-    this.keys.set(name, window);
-    window.name = name;
-    (window as any)[this.Get_KeyedWindowManager] = () => this;
-
-    /** 获取 opener 的实例 */
-    const manager: typeof _Browser_KeyedWindowManager = (
-      window.opener as any
-    )?.[this.Get_KeyedWindowManager]?.();
-    /** 使用 opener 同步所有可访问的窗口 */
-    manager?.notify();
-  }
-
-  /**
-   * 更新窗口管理器
-   * @param self 最新实例
-   */
-  static update(self: typeof _Browser_KeyedWindowManager) {
-    self.keys.forEach((win, key) => {
-      if (window.name == key) return;
-      this.keys.set(key, win);
-    });
-  }
-
-  /**
-   * 通知所有窗口 同步所以可访问的窗口
-   */
-  static notify() {
-    this.keys.forEach((win, key) => {
-      // 如果窗口已关闭，应该清理
-      if (win.closed) {
-        this.keys.delete(key); // 需要key信息
-        return;
-      }
-      const manager: typeof _Browser_KeyedWindowManager = (win as any)[
-        this.Get_KeyedWindowManager
-      ]?.();
-      manager?.update(this);
-    });
-  }
-
-  /**
-   * 检查窗口的 opener 是否与当前页面同源
-   * @param win 窗口对象
-   * @returns 如果 opener 与当前页面同源则返回true，否则返回false
-   */
-  static isSameOrigin(url?: string | URL) {
-    return url && new URL(url).origin === location.origin;
-  }
-
-  /**
-   * 根据键打开或聚焦窗口
-   * @param key 窗口的唯一键
-   * @param url 要打开的URL
-   * @param target 窗口的目标
-   * @param windowFeatures 新窗口的特性
-   * @returns 返回已打开或新打开的窗口
-   */
-  static open(
-    key: string,
-    url?: string | URL,
-    target?: WindowTarget,
-    windowFeatures?: string
-  ) {
-    if (this.keys.size == 0) {
-      return console.error(
-        "请先使用 _Browser_KeyedWindowManager.init 方法进行初始化"
-      );
-    }
-
-    const win = this.keys.get(key);
-    if (win && !win.closed) {
-      if (win.name) open("javascript:;", win.name);
-      else win.focus();
-
-      return win;
-    } else if (this.isSameOrigin(url)) {
-      const newWin = window.open(url, target, windowFeatures);
-      if (newWin) {
-        this.keys.set(key, newWin);
-        return newWin;
-      } else {
-        console.error("window.open failed: 可能是浏览器阻止了弹出窗口");
-        this.keys.delete(key);
-        this.notify();
-      }
-    } else {
-      console.error(`"${url}" 不符合同源策略，仅能管理同源标签页`);
-    }
-  }
-
-  /**
-   * 检查指定键的窗口是否打开
-   * @param key 窗口的唯一键
-   * @returns 如果窗口打开则返回true，否则返回false
-   */
-  static isOpen(key: string): boolean {
-    const window = this.keys.get(key);
-    if (window?.closed) this.keys.delete(key);
-    return this.keys.has(key);
-  }
-
-  /**
-   * 获取与指定键关联的窗口
-   * @param key 窗口的唯一键
-   * @returns 返回对应的窗口，如果窗口已关闭则返回undefined
-   */
-  static getWindow(key: string) {
-    if (this.isOpen(key)) return this.keys.get(key);
-  }
-
-  /**
-   * 关闭与指定键关联的窗口
-   * @param key 窗口的唯一键
-   */
-  static close(key: string): void {
-    const win = this.keys.get(key);
-    if (win) {
-      win.close();
-      this.keys.delete(key);
-      this.notify();
-    }
-  }
-
-  /**
-   * 关闭所有打开的窗口并清空Map
-   */
-  static closeAll(): void {
-    this.keys.forEach((window, key) => window.close());
-    this.keys.clear();
-  }
-}
-
-/**
  * 计算纸张内容可用宽高及边距（考虑设备DPI）
  * 确保：contentWidth + 2*paddingPx = 纸张宽度像素
  * @param type 纸张类型
@@ -312,4 +162,175 @@ export function _Browser_CalculatePrintableArea(
     /** 纸张高度（像素） */
     paperHeightPx,
   };
+}
+
+/** 定义消息类型枚举，避免硬编码字符串 */
+enum ChannelMessageType {
+  /** 回执消息 */
+  RESPONSE = "response",
+  /** 询问消息 */
+  QUERY = "query",
+}
+
+/** 基础消息结构 */
+interface ChannelMessage {
+  /** 消息类型 */
+  type: ChannelMessageType;
+  /** 消息关联的标识键 */
+  responseKey: string;
+  /** 标签页名称 "*" 表示所有标签页 */
+  name: string;
+}
+
+/** 同源标签页管理器类 */
+export class _Browser_SameOriginTabManager {
+  /** 初始化完成标志 */
+  private static initFinish = false;
+  /** 频道 */
+  private static channel = new BroadcastChannel("nhanh-pure-function");
+
+  /** 等待回执消息时间上限（上限） */
+  static timeout = 150;
+
+  /**
+   * 待处理查询
+   * @param key 回执消息key
+   * @param callback 匹配标签页的回调函数
+   */
+  private static pendingQueries = new Map<
+    string,
+    ((tabName: string) => void)[]
+  >();
+
+  private constructor() {}
+
+  /** 初始化标签页管理器 */
+  static init(name: string) {
+    if (!name) return console.error("标签页名称不能为空");
+    if (!this.initFinish) {
+      this.setupEventListeners();
+      this.initFinish = true;
+    }
+    window.name = name;
+  }
+
+  /** 设置事件监听器 */
+  private static setupEventListeners() {
+    this.channel.addEventListener(
+      "message",
+      (event: MessageEvent<ChannelMessage>) => {
+        this.handleChannelMessage(event);
+      }
+    );
+  }
+
+  /** 处理BroadcastChannel消息 */
+  private static handleChannelMessage(
+    event: MessageEvent<ChannelMessage>
+  ): void {
+    const { type, responseKey, name } = event.data;
+
+    if (type === ChannelMessageType.RESPONSE) {
+      const queryCallbacks = this.pendingQueries.get(responseKey);
+      queryCallbacks?.forEach((callback) => callback(name));
+    } else if (type === ChannelMessageType.QUERY) {
+      if (this.pendingQueries.has(responseKey)) return;
+      if (name != "*" && name != window.name) return;
+
+      const message: ChannelMessage = {
+        type: ChannelMessageType.RESPONSE,
+        responseKey,
+        name: window.name,
+      };
+      this.channel.postMessage(message);
+    }
+  }
+
+  /**
+   * 获取已经打开的指定名称的标签页
+   * @param name 标签页名称
+   */
+  static getWindow(name: string) {
+    if (!this.initFinish) {
+      const msg = "请先初始化标签页管理器";
+      console.error(msg);
+      return Promise.reject(msg);
+    }
+
+    const responseKey = _Utility_GenerateUUID();
+
+    let isReplied = false;
+
+    const queryCallbacks = this.pendingQueries.get(responseKey) || [];
+    queryCallbacks.push(() => (isReplied = true));
+
+    this.pendingQueries.set(responseKey, queryCallbacks);
+
+    const message: ChannelMessage = {
+      type: ChannelMessageType.QUERY,
+      responseKey,
+      name,
+    };
+
+    this.channel.postMessage(message);
+
+    return _Utility_WaitForCondition(() => isReplied, this.timeout).finally(
+      () => this.pendingQueries.delete(responseKey)
+    );
+  }
+
+  /** 打开标签页 */
+  static openWindow(
+    name: string,
+    url: string,
+    target: WindowTarget = "_blank",
+    windowFeatures?: string
+  ) {
+    if (!this.initFinish) {
+      const msg = "请先初始化标签页管理器";
+      console.error(msg);
+      return Promise.reject(msg);
+    }
+
+    return this.getWindow(name)
+      ?.then(() => window.open("javascript:;", name))
+      .catch(() => {
+        const win = window.open(url, target, windowFeatures);
+        if (!win) console.error("无法打开标签页");
+        return win;
+      });
+  }
+
+  /** 获取所有已经打开的标签页 */
+  static getAllWindows(): Promise<string[]> {
+    if (!this.initFinish) {
+      const msg = "请先初始化标签页管理器";
+      console.error(msg);
+      return Promise.reject(msg);
+    }
+
+    const responseKey = _Utility_GenerateUUID();
+
+    const tabs: string[] = [];
+
+    const queryCallbacks = this.pendingQueries.get(responseKey) || [];
+    queryCallbacks.push((tab) => tabs.push(tab));
+
+    this.pendingQueries.set(responseKey, queryCallbacks);
+
+    const message: ChannelMessage = {
+      type: ChannelMessageType.QUERY,
+      responseKey,
+      name: "*",
+    };
+
+    this.channel.postMessage(message);
+
+    return new Promise((reslove) => {
+      setTimeout(() => {
+        this.pendingQueries.delete(responseKey);
+        reslove(tabs);
+      }, this.timeout);
+    });
+  }
 }
