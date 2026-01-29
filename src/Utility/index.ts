@@ -11,7 +11,10 @@ import {
  * @param callback  需执行的方法
  * @param timeout 超时时间
  */
-export function _Utility_ExecuteWhenIdle(callback: Function, timeout = 3000) {
+export function _Utility_ExecuteWhenIdle(
+  callback: (deadline?: IdleDeadline) => void,
+  timeout = 3000
+) {
   if (typeof callback !== "function")
     return console.error("非函数：", callback);
 
@@ -19,7 +22,7 @@ export function _Utility_ExecuteWhenIdle(callback: Function, timeout = 3000) {
   const loop = function (deadline: IdleDeadline) {
     if (deadline.timeRemaining() <= 0 && !deadline.didTimeout)
       requestIdleCallback(loop, { timeout });
-    else callback();
+    else callback(deadline);
   };
 
   if (requestIdleCallback) requestIdleCallback(loop, { timeout });
@@ -471,16 +474,38 @@ export function _Utility_Clone<T>(val: T) {
 }
 
 /**
- * 函数装饰器，用于测量并记录另一个函数的执行时间
- * @param func 要测量执行时间的函数
- * @param level 耗时与颜色对应的数组，用于在控制台中着色显示
- * @param maxHistory 保留的最大历史记录数，默认为30
+ * 函数装饰器：精准测量并记录目标函数的执行耗时（单位：毫秒）
+ *
+ * @template T - 泛型参数，约束为任意函数类型，保证装饰器返回值类型与原函数一致
+ * @param {T} func - 待测量执行时间的目标函数
+ * @param {Object} [config] - 可选配置对象，用于自定义耗时测量规则
+ * @param {Array<[number, string]>} [config.level] - 耗时阈值（毫秒）与控制台输出颜色的映射数组
+ *                                                   规则：当函数耗时（ms）≥ level[n][0] 时，使用 level[n][1] 指定的颜色输出
+ * @param {number} [config.maxHistory=30] - 执行耗时历史记录的最大保留条数，默认值为30
+ * @param {string} [config.prefix] - 控制台输出耗时日志时的自定义前缀文本（可选）
+ * @returns {T | void} 包装后的函数（保留原函数所有功能，新增耗时测量/记录/日志输出逻辑）；若入参非法则返回 void
  */
-export function _Utility_TimeConsumption(
-  func: Function,
-  level: [number, string][],
-  maxHistory = 30
-) {
+export function _Utility_TimeConsumption<T extends Function>(
+  func: T,
+  config?: {
+    level?: [number, string][];
+    maxHistory?: number;
+    prefix?: string;
+  }
+): T | void {
+  const {
+    level = [
+      [11, "#d03050"],
+      [8, "#f0a020"],
+      [5, "#2080f0"],
+      [2, "#18a058"],
+    ],
+    maxHistory = 30,
+    prefix = "",
+  } = config || {};
+
+  level.sort((a, b) => b[0] - a[0]);
+
   // 检查参数类型
   if (typeof func !== "function") {
     return console.error("第一个参数必须是一个函数。");
@@ -506,7 +531,7 @@ export function _Utility_TimeConsumption(
   };
 
   // 返回一个闭包函数，用于执行原始函数并测量其执行时间
-  return function (...args: any[]) {
+  const fun = (...args: any[]) => {
     // 记录开始时间
     const startTime = performance.now();
 
@@ -534,15 +559,16 @@ export function _Utility_TimeConsumption(
 
     // 输出带样式的日志，包含单次耗时和平均耗时
     console.log(
-      `%c单次耗时：${elapsedTime.toFixed(2)}ms\n%c平均耗时（${
-        drawTimes.length
-      }次）：${avgTime.toFixed(2)}ms`,
+      `%c${prefix ? prefix + " - " : ""}单次耗时：${elapsedTime.toFixed(
+        2
+      )}ms\n%c平均耗时（${drawTimes.length}次）：${avgTime.toFixed(2)}ms`,
       `color: ${singleColor}; padding: 2px 0;`,
       `color: ${avgColor}; padding: 2px 0;`
     );
 
     return result;
   };
+  return fun as unknown as T;
 }
 
 /**
