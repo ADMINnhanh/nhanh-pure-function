@@ -493,16 +493,13 @@ export function _Utility_TimeConsumption<T extends Function>(
     prefix?: string;
   }
 ): T | void {
-  const {
-    level = [
-      [11, "#d03050"],
-      [8, "#f0a020"],
-      [5, "#2080f0"],
-      [2, "#18a058"],
-    ],
-    maxHistory = 30,
-    prefix = "",
-  } = config || {};
+  const defaultLevel: [number, string][] = [
+    [11, "#d03050"],
+    [8, "#f0a020"],
+    [5, "#2080f0"],
+    [2, "#18a058"],
+  ];
+  const { level = defaultLevel, maxHistory = 30, prefix = "" } = config || {};
 
   level.sort((a, b) => b[0] - a[0]);
 
